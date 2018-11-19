@@ -74,7 +74,7 @@ class Player():
 		self.grappleState = 0 #0 is not grappling, 1 is extending, 2 is swining, 3 is retracting
 		self.grappleAngle = 60
 		self.grapplingHook = [[self.x + self.width/2, self.y],[self.x + self.width/2, self.y]]
-		self.grappleExtendSpeed = 25
+		self.grappleExtendSpeed = 75
 		self.direction = 1
 		self.isGrappling = False
 	def grappleHit(self,data):
