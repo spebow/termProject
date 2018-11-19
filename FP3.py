@@ -6,9 +6,30 @@ from pygame.locals import *
 import keyboard
 import math
 
+class PowerUps():
+	def __init__(self):
+		self.puSize = 50
+		self.speedBoost = [[2000, 500 - self.puSize]]
+		self.powers = []
+	def draw(self,data):
+		for boost in self.speedBoost:
+			x,y,s = boost[0] - data.screenX, boost[1] - data.screenY, self.puSize
+			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+	def collidesWithPlayer(self, player1,data):
+		for boost in self.speedBoost:
+			if player1.x <= boost[0] + self.puSize and player1.x + player1.width >= boost[0]:
+				if player1.y <= boost[1] + self.puSize and player1.y + player1.height >= boost[1]:
+					self.speedBoost.remove(boost)
+					player1.xSpeed = player1.xSpeed *1.5
+	def updatePowers(self,data):
+		pass
+
+	def update(self, player1, data):
+		self.collidesWithPlayer(player1,data)
+		self.updatePowers(data)
 class Map():
 	def __init__(self):
-		self.mapWidth = 1800
+		self.mapWidth = 3000
 		self.mapHeight = 1000
 		self.floors = [[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
 		self.walls = [[0, (self.mapHeight, 0)] , [self.mapWidth,(self.mapHeight,0)], [200, (500, 740)] , [self.mapWidth-200, (500,740)]]
@@ -68,7 +89,6 @@ class Player():
 				slope = 0
 			tx = (slope * (gy1 - py)) + gx1
 			if tx < max(px1,px2) and tx > min(px1,px2):
-				print("fuck")
 				return (True, tx, py)
 		return (False,0,0)
 	def extendGrapple(self,data):
@@ -153,6 +173,7 @@ class Player():
 			if self.x < max(x1,x2) and self.x + self.width > min(x1,x2):
 				if self.y <= y and self.y + self.height >= y:
 					return True
+		
 		return False
 	def fixFloorCollision(self, data):
 		for floor in data.map.floors:
@@ -166,6 +187,7 @@ class Player():
 					else:
 						self.y = y - self.height
 					self.ySpeed = 0
+		
 	def fixWallCollision(self,data):
 		for wall in data.map.walls:
 			y1, y2 = wall[1][0], wall[1][1]
@@ -177,6 +199,7 @@ class Player():
 						self.x = wall[0]
 					self.xSpeed = 0
 	def fixDoubleCollision(self,data):
+		print("trip")
 		wallHit = []
 		floorHit = []
 		for wall in data.map.walls:
@@ -189,13 +212,17 @@ class Player():
 			if self.x < max(x1,x2) and self.x + self.width > min(x1,x2):
 				if self.y <= y and self.y + self.height >= y:
 					floorHit = floor
-		xC, yC = self.x, self.y
-		self.x, self.y = wallHit[0], floorHit[1]-data.player1.height
-		if self.isOnWall(data) or self.isOnFloor(data):
-			self.xSpeed, self.ySpeed = 0,0
+		if self.ySpeed > 0:
+			self.y = floorHit[1]
 		else:
-			print("trip")
-			self.x,self.y = xC, yC
+			self.y = floorHit[1] - self.height
+		if self.xSpeed > 0:
+			self.x = wallHit[0] - self.width
+		else:
+			self.x = wallHit[0]
+		self.xSpeed, self.ySpeed = 0,0
+		if not(self.isOnFloor and self.isOnWall):
+			print("ya i fucked up")
 		
 
 
@@ -209,10 +236,10 @@ class Player():
 		self.x += self.xSpeed
 		if self.isOnFloor(data) and self.isOnWall(data):
 			self.fixDoubleCollision(data)
-		elif self.isOnFloor(data):
+		if self.isOnFloor(data):
 			self.fixFloorCollision(data)
 			self.djUsed = False
-		elif self.isOnWall(data):
+		if self.isOnWall(data):
 			self.fixWallCollision(data)
 			self.wjUsed = False
 	def drawGrapplingHook(self,data):
@@ -234,12 +261,14 @@ def init(data):
 	clock = pygame.time.Clock()
 	pygame.key.set_repeat(1)
 	data.player1 = Player()
+	data.powerUps = PowerUps()
 	data.gravity = 2
 	data.map = Map()
 	data.screenX, data.screenY = 0,0
 	data.wallGravity = 1
 	data.fpsActual = 0
 	pygame.font.init()
+	
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -279,6 +308,7 @@ def userInteractions(data):
 		data.player1.endGrapple(data)
 def periodical(data):
 	data.player1.move(data)
+	data.powerUps.update(data.player1, data)
 def runGame(data):
 	userInteractions(data)
 	periodical(data)
@@ -303,6 +333,7 @@ def drawFps(data):
 def drawGame(data):
 	moveScreen(data)
 	data.map.drawMap(data)
+	data.powerUps.draw(data)
 	data.player1.drawPlayer(data)
 	drawFps(data)
 	pygame.display.flip()
@@ -314,8 +345,6 @@ def playGame(data):
 		drawGame(data)
 		data.fpsClock.tick(data.fps)
 		data.fpsActual = int(1/(time.time() - oldTime))
-
-
 def startGame():
 	class Struct(object): pass
 	data = Struct()
