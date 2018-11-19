@@ -15,14 +15,21 @@ class PowerUps():
 		for boost in self.speedBoost:
 			x,y,s = boost[0] - data.screenX, boost[1] - data.screenY, self.puSize
 			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+
 	def collidesWithPlayer(self, player1,data):
 		for boost in self.speedBoost:
 			if player1.x <= boost[0] + self.puSize and player1.x + player1.width >= boost[0]:
 				if player1.y <= boost[1] + self.puSize and player1.y + player1.height >= boost[1]:
 					self.speedBoost.remove(boost)
-					player1.xSpeed = player1.xSpeed *1.5
+					data.player1.runningSpeed = data.player1.runningSpeed * 2
+					self.powers.append(["speedBoost", 120])
 	def updatePowers(self,data):
-		pass
+		for power in self.powers:
+			power[1] -= 1
+			if power[1] <= 0:
+				if power[0] == "speedBoost":
+					data.player1.runningSpeed = data.player1.runningSpeed/2
+					self.powers.remove(power)
 
 	def update(self, player1, data):
 		self.collidesWithPlayer(player1,data)
@@ -110,9 +117,9 @@ class Player():
 		g = self.grapplingHook
 		length = ((g[0][0] - g[1][0])**2 + (g[0][1] - g[1][1])**2)**.5
 		angle = math.atan((g[0][0] - g[1][0])/(g[0][1] - g[1][1]))
-		newAngle = angle + self.direction/8
+		newAngle = angle + (self.direction/(length))*20
 		self.xSpeed = (g[1][0] - g[0][0]) + math.sin(newAngle)*length
-		self.ySpeed =  -(math.cos(newAngle)*length - (g[0][1] - g[1][1]))
+		self.ySpeed = -(math.cos(newAngle)*length - (g[0][1] - g[1][1]))
 
 		
 	def retractGrapple(self,data):
@@ -199,7 +206,6 @@ class Player():
 						self.x = wall[0]
 					self.xSpeed = 0
 	def fixDoubleCollision(self,data):
-		print("trip")
 		wallHit = []
 		floorHit = []
 		for wall in data.map.walls:
@@ -212,17 +218,19 @@ class Player():
 			if self.x < max(x1,x2) and self.x + self.width > min(x1,x2):
 				if self.y <= y and self.y + self.height >= y:
 					floorHit = floor
-		if self.ySpeed > 0:
-			self.y = floorHit[1]
+		if self.xSpeed != 0:
+			tx = abs((self.x - wall[0])/self.xSpeed)
 		else:
-			self.y = floorHit[1] - self.height
-		if self.xSpeed > 0:
-			self.x = wallHit[0] - self.width
+			tx = 1
+		if self.ySpeed != 0:
+			ty = abs((self.y - floor[1])/self.ySpeed)
 		else:
-			self.x = wallHit[0]
-		self.xSpeed, self.ySpeed = 0,0
-		if not(self.isOnFloor and self.isOnWall):
-			print("ya i fucked up")
+			ty = 1
+		if tx < ty:
+			self.fixFloorCollision(data)
+		else:
+			self.fixWallCollision(data)
+
 		
 
 
@@ -309,6 +317,7 @@ def userInteractions(data):
 def periodical(data):
 	data.player1.move(data)
 	data.powerUps.update(data.player1, data)
+	print(data.player1.xSpeed)
 def runGame(data):
 	userInteractions(data)
 	periodical(data)
