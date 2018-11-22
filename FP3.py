@@ -11,26 +11,41 @@ class PowerUps():
 		self.puSize = 50
 		self.speedBoost = [[2000, 500 - self.puSize]]
 		self.powers = []
+		self.boost = 0
+	def drawBoostBar(self, data):
+		text = "Boost"
+		font = pygame.font.SysFont('Comic Sans MS', 20)
+		color = (0,255,0)
+		text = font.render(text, True, color)
+		data.screen.blit(text, (60,20))
+		pygame.draw.rect(data.screen, (0,255,0), [125,28, self.boost, 15])
+
+	def boostPlayer(self,data):
+		p1 = data.player1
+		if self.boost> 0:
+			self.boost -= 1
+			p1.runningSpeed = 2*p1.unBoostedRunningSpeed
+		else:
+			p1.runningSpeed = p1.unBoostedRunningSpeed
+	def unBoost(self,data):
+		data.player1.runningSpeed = data.player1.unBoostedRunningSpeed
 	def draw(self,data):
 		for boost in self.speedBoost:
 			x,y,s = boost[0] - data.screenX, boost[1] - data.screenY, self.puSize
 			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+		self.drawBoostBar(data)
 
 	def collidesWithPlayer(self, player1,data):
 		for boost in self.speedBoost:
 			if player1.x <= boost[0] + self.puSize and player1.x + player1.width >= boost[0]:
 				if player1.y <= boost[1] + self.puSize and player1.y + player1.height >= boost[1]:
 					self.speedBoost.remove(boost)
-					data.player1.runningSpeed = data.player1.runningSpeed * 2
-					self.powers.append(["speedBoost", 120])
+					self.boost += 100
 	def updatePowers(self,data):
 		for power in self.powers:
 			power[1] -= 1
 			if power[1] <= 0:
-				if power[0] == "speedBoost":
-					data.player1.runningSpeed = data.player1.runningSpeed/2
-					self.powers.remove(power)
-
+				pass
 	def update(self, player1, data):
 		self.collidesWithPlayer(player1,data)
 		self.updatePowers(data)
@@ -62,6 +77,8 @@ class Map():
 		self.drawWalls(data)
 		self.drawFloors(data)
 		self.drawGrapplePlaces(data)
+ 
+
 class Player():
 	def __init__(self):
 		self.x = 300
@@ -73,6 +90,7 @@ class Player():
 		self.color = (255,0,0)
 		self.jumpStrength = 35
 		self.runningSpeed = 15
+		self.unBoostedRunningSpeed = self.runningSpeed
 		self.djUsed = False
 		self.djkeyLifted = False
 		self.wjUsed = False
@@ -84,6 +102,16 @@ class Player():
 		self.grappleExtendSpeed = 70
 		self.direction = 1
 		self.isGrappling = False
+		self.runningImages= self.createRunningImages()
+		self.state = "running"
+		self.runningProgress = 0 
+	def createRunningImages(self):
+		names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
+		images = []
+		for name in names:
+			img = pygame.image.load("player1 sprite/%s.png" %name)
+			images.append(img)
+		return images
 	def grappleHit(self,data):
 		for pad in data.map.grapplePlaces:
 			px1, px2, py= pad[0][0], pad[0][1], pad[1]
@@ -258,7 +286,11 @@ class Player():
 		x,y,sx, sy = self.x, self.y, self.width, self.height
 		x -= data.screenX
 		y -= data.screenY
-		pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
+		self.runningProgress += 1
+		picture = self.runningImages[self.runningProgress%len(self.runningImages)]
+		picture = pygame.transform.scale(picture, (self.width, self.height))
+		data.screen.blit(picture,(x,y))
+		#pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
 		self.drawGrapplingHook(data)
 def init(data):
 	data.screenWidth, data.screenHeight = 600, 800
@@ -275,8 +307,7 @@ def init(data):
 	data.screenX, data.screenY = 0,0
 	data.wallGravity = 1
 	data.fpsActual = 0
-	pygame.font.init()
-	
+	pygame.font.init()	
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -314,6 +345,10 @@ def userInteractions(data):
 		data.player1.grapple(data)
 	else:
 		data.player1.endGrapple(data)
+	if keyboard.is_pressed("d"):
+		data.powerUps.boostPlayer(data)
+	else:
+		data.powerUps.unBoost(data)
 def periodical(data):
 	data.player1.move(data)
 	data.powerUps.update(data.player1, data)
