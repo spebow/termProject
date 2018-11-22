@@ -6,6 +6,11 @@ from pygame.locals import *
 import keyboard
 import math
 
+"""
+Players sprites were taken from here:
+https://jesse-m.itch.io/jungle-pack/download/eyJleHBpcmVzIjoxNTQyODU5Mzc2LCJpZCI6MTMwMDQ5fQ%3d%3d.wag%2bBxv0sMSYsZWrkavm82ppU5M%3d
+"""
+
 class PowerUps():
 	def __init__(self):
 		self.puSize = 50
@@ -76,8 +81,7 @@ class Map():
 		self.drawBackground(data)
 		self.drawWalls(data)
 		self.drawFloors(data)
-		self.drawGrapplePlaces(data)
- 
+		self.drawGrapplePlaces(data) 
 class Player():
 	def __init__(self):
 		self.x = 300
