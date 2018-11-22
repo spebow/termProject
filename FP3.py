@@ -78,7 +78,6 @@ class Map():
 		self.drawFloors(data)
 		self.drawGrapplePlaces(data)
  
-
 class Player():
 	def __init__(self):
 		self.x = 300
@@ -102,14 +101,35 @@ class Player():
 		self.grappleExtendSpeed = 70
 		self.direction = 1
 		self.isGrappling = False
-		self.runningImages= self.createRunningImages()
+		self.runningImages = self.createRunningImages()
+		self.idleImages = self.createIdleImages()
+		self.jumpingImages = self.createJumpingImages()
 		self.state = "running"
 		self.runningProgress = 0 
+		self.idleProgress = 0
+		self.jumpingProgress = 0
 	def createRunningImages(self):
 		names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
 		images = []
 		for name in names:
 			img = pygame.image.load("player1 sprite/%s.png" %name)
+			img = pygame.transform.scale(img, (self.width, self.height))
+			images.append(img)
+		return images
+	def createIdleImages(self):
+		names = ["idle-1", "idle-2", "idle-3", "idle-4", "idle-5", "idle-6","idle-7", "idle-8", "idle-9", "idle-10", "idle-11", "idle-12"]
+		images = []
+		for name in names:
+			img = pygame.image.load("player1 sprite/%s.png" %name)
+			img = pygame.transform.scale(img, (self.width, self.height))
+			images.append(img)
+		return images
+	def createJumpingImages(self):
+		names = ["jump-1", "jump-2"]
+		images = []
+		for name in names:
+			img = pygame.image.load("player1 sprite/%s.png" %name)
+			img = pygame.transform.scale(img, (self.width, self.height))
 			images.append(img)
 		return images
 	def grappleHit(self,data):
@@ -274,7 +294,8 @@ class Player():
 			self.fixDoubleCollision(data)
 		if self.isOnFloor(data):
 			self.fixFloorCollision(data)
-			self.djUsed = False
+			if self.ySpeed < 0:
+				self.djUsed = False
 		if self.isOnWall(data):
 			self.fixWallCollision(data)
 			self.wjUsed = False
@@ -286,15 +307,38 @@ class Player():
 		x,y,sx, sy = self.x, self.y, self.width, self.height
 		x -= data.screenX
 		y -= data.screenY
-		self.runningProgress += 1
-		picture = self.runningImages[self.runningProgress%len(self.runningImages)]
-		picture = pygame.transform.scale(picture, (self.width, self.height))
+		if self.height == self.squatHeight:
+			picture = pygame.image.load("player1 sprite/wallSlide.png" )
+			if self.direction > 0:
+				picture = pygame.transform.rotate(picture, 270)
+			else:
+				picture = pygame.transform.rotate(picture, -90)
+			picture = pygame.transform.scale(picture, (self.width, self.height))
+		elif self.isOnFloor(data) and self.xSpeed != 0:
+			self.runningProgress += 1
+			picture = self.runningImages[self.runningProgress%len(self.runningImages)]
+		elif self.isOnFloor(data) and self.xSpeed == 0:
+			self.idleProgress += 1
+			picture = self.idleImages[self.idleProgress%len(self.idleImages)]
+		elif self.isOnWall(data):
+			picture = pygame.image.load("player1 sprite/wallSlide.png" )
+			picture = pygame.transform.scale(picture, (self.width, self.height))
+		elif self.isGrappling:
+			picture = pygame.image.load("player1 sprite/wallSlide.png" )
+			picture = pygame.transform.scale(picture, (self.width, self.height))
+		else:
+			self.jumpingProgress += 1
+			picture = self.jumpingImages[self.jumpingProgress%len(self.jumpingImages)]
+
+		
+		if self.direction < 0:
+			picture = pygame.transform.flip(picture, True, False)
 		data.screen.blit(picture,(x,y))
 		#pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
 		self.drawGrapplingHook(data)
 def init(data):
 	data.screenWidth, data.screenHeight = 600, 800
-	data.fps = 60
+	data.fps = 30
 	pygame.init()
 	data.fpsClock = pygame.time.Clock()
 	data.screen = pygame.display.set_mode((data.screenWidth, data.screenHeight),0,32)
@@ -370,7 +414,7 @@ def moveScreen(data):
 def drawFps(data):
 	text = str(data.fpsActual)
 	font = pygame.font.SysFont('Comic Sans MS', 20)
-	d = min(abs(int(255*((data.fpsActual-10)/(50)))), 255)
+	d = min(abs(int(255*((data.fpsActual-10)/(30)))), 255)
 	color = (255,d,d)
 	text = font.render(text, True, color)
 	data.screen.blit(text, (20,20))
