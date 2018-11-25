@@ -12,7 +12,7 @@ https://jesse-m.itch.io/jungle-pack/download/eyJleHBpcmVzIjoxNTQyODU5Mzc2LCJpZCI
 """
 class Crates():
 	def __init__(self):
-		self.crates = [[800,380]]
+		self.crates = [[2600,1000]]
 		self.size = 60
 		self.image = pygame.image.load("crate.png")
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
@@ -25,6 +25,8 @@ class Crates():
 				if crate[1] < y+h and crate[1] + self.size > y:
 					self.stunned = 15
 					self.crates.remove(crate) 
+					if data.player1.grappleState == 1 or data.player1.grappleState == 2:
+						data.player1.grappleState = 3
 		if self.stunned > 0:
 			self.stunned -= 1
 	def drawCrates(self,data):
@@ -33,7 +35,7 @@ class Crates():
 class PowerUps():
 	def __init__(self):
 		self.puSize = 50
-		self.speedBoost = [[2000, 500 - self.puSize]]
+		self.speedBoost = [[2000, 900]]
 		self.powers = []
 		self.boost = 0
 	def drawBoostBar(self, data):
@@ -76,11 +78,11 @@ class PowerUps():
 class Map():
 	def __init__(self):
 		self.mapWidth = 3000
-		self.mapHeight = 1000
-		self.floors = [[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
-		self.walls = [[0, (self.mapHeight, 0)] , [self.mapWidth,(self.mapHeight,0)], [200, (500, 740)] , [self.mapWidth-200, (500,740)]]
-		self.grapplePlaces = [[(400,self.mapWidth - 400), 0]]
-		self.picture = pygame.image.load("download.jpg")
+		self.mapHeight = 2000
+		self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
+		self.walls = [[0, (0,2000)], [3000, (0,2000)], [800, (700, 1600)], [900, (700, 1600)], [1300, (1150, 1950)], [1400, (1250, 1950)], [2600, (600,1000)], [2700, (600,1000)], [300, (1600, 1680)], [1000, (1600, 1680)], [500, (600,700)], [500, (1150, 1250)], [1750, (950, 1010)], [2100, (950, 1010)]]
+		self.grapplePlaces = [[(600, 2600), 10]]
+		self.picture = pygame.image.load("level-1.png")
 		self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
@@ -110,8 +112,8 @@ class Player():
 		self.xSpeed = 0
 		self.ySpeed = 0
 		self.color = (255,0,0)
-		self.jumpStrength = 35
-		self.runningSpeed = 15
+		self.jumpStrength = 45
+		self.runningSpeed = 25
 		self.unBoostedRunningSpeed = self.runningSpeed
 		self.djUsed = False
 		self.djkeyLifted = False
@@ -300,16 +302,22 @@ class Player():
 		else:
 			ty = 1
 		if tx < ty:
-			self.fixFloorCollision(data)
+			if self.x  + self.width > min(floorHit[0]) and self.x < max(floorHit[0]):
+				self.fixFloorCollision(data)
+			else:
+				self.fixWallCollision(data)
 		else:
-			self.fixWallCollision(data)
+			if self.y < max(wallHit[1]) and self.y + self.height > min(wallHit[1]):
+				self.fixWallCollision(data)
+			else:
+				self.fixFloorCollision(data)
 
 		
 
 
 	def move(self,data):
 		self.updateGrappleLocation(data)
-		if self.isOnWall(data) and self.ySpeed < 0:
+		if self.isOnWall(data):
 			self.ySpeed -= data.wallGravity
 		elif not self.isGrappling:
 			self.ySpeed -= data.gravity
@@ -322,6 +330,8 @@ class Player():
 		self.y -= self.ySpeed
 		if data.crates.stunned <= 0:
 			self.x += self.xSpeed
+		else:
+			self.x += self.xSpeed/5
 
 		if self.isOnFloor(data) and self.isOnWall(data):
 			self.fixDoubleCollision(data)
@@ -341,9 +351,8 @@ class Player():
 		x,y,sx, sy = self.x, self.y, self.width, self.height
 		x -= data.screenX
 		y -= data.screenY
-		if data.crates.stunned > 0:
-			picture = self.idleImages[1]
-		elif self.height == self.squatHeight:
+		
+		if self.height == self.squatHeight:
 			picture = pygame.image.load("player1 sprite/wallSlide.png" )
 			if self.direction > 0:
 				picture = pygame.transform.rotate(picture, 270)
@@ -373,7 +382,7 @@ class Player():
 		#pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
 		self.drawGrapplingHook(data)
 def init(data):
-	data.screenWidth, data.screenHeight = 600, 800
+	data.screenWidth, data.screenHeight = 1000, 600
 	data.fps = 30
 	pygame.init()
 	data.fpsClock = pygame.time.Clock()
@@ -382,10 +391,10 @@ def init(data):
 	pygame.key.set_repeat(1)
 	data.player1 = Player()
 	data.powerUps = PowerUps()
-	data.gravity = 2
+	data.gravity = 3
 	data.map = Map()
 	data.screenX, data.screenY = 0,0
-	data.wallGravity = 1
+	data.wallGravity = 1.3
 	data.fpsActual = 0
 	pygame.font.init()	
 	data.crates = Crates()
@@ -451,7 +460,7 @@ def moveScreen(data):
 def drawFps(data):
 	text = str(data.fpsActual)
 	font = pygame.font.SysFont('Comic Sans MS', 20)
-	d = min(abs(int(255*((data.fpsActual-10)/(30)))), 255)
+	d = max(min(int((((data.fpsActual-10)/20)*255)), 0),255)
 	color = (255,d,d)
 	text = font.render(text, True, color)
 	data.screen.blit(text, (20,20))
@@ -471,18 +480,34 @@ def playGame(data):
 		drawGame(data)
 		data.fpsClock.tick(data.fps)
 		data.fpsActual = int(1/(time.time() - oldTime))
-
+def endPreGame(data):
+	data.preGame = False
+def preGameInit(data):
+	data.preGame = False
+def preGameExit(data):
+	for event in pygame.event.get():
+		if event.type == QUIT:
+			pygame.quit()
+			sys.exit()
+def preGameUser(data):
+	pass
+def preGameDraw(data):
+	data.screen.fill((255,255,255))
 def preGame(data):
+	preGameInit(data)
 	while True:
 		oldTime = time.time()
-		
+		preGameExit(data)
+		preGameUser(data)
+		preGameDraw(data)
 		data.fpsClock.tick(data.fps)
-		data.fpsActual = int(1/(time.time() - oldTime))
+		if not data.preGame:
+			break
 def startGame():
 	class Struct(object): pass
 	data = Struct()
 	init(data)
-	#preGame(data)
+	preGame(data)
 	playGame(data)
 
 startGame()
