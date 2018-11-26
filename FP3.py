@@ -106,7 +106,7 @@ class Map():
 class Player():
 	def __init__(self):
 		self.x = 300
-		self.y = 0
+		self.y = 1850
 		self.width = 100
 		self.height = 100
 		self.xSpeed = 0
@@ -473,32 +473,56 @@ def drawGame(data):
 	drawFps(data)
 	pygame.display.flip()
 	pygame.display.update()
+def countdown(data):
+	ogTime = time.time()
+	while True:
+		secondsLeft = math.ceil((3 - (time.time() - ogTime)))
+		size = int((secondsLeft - (3 - (time.time() - ogTime)))*50 + 10)
+		moveScreen(data)
+		data.map.drawMap(data)
+		data.powerUps.draw(data)
+		data.crates.drawCrates(data)
+		data.player1.drawPlayer(data)
+		text = str(secondsLeft)
+		font = pygame.font.SysFont('Comic Sans MS', size)
+		color = (0,255,0)
+		text = font.render(text, True, color)
+		data.screen.blit(text, (data.screenWidth/2, data.screenHeight/2))		
+		pygame.display.flip()
+		pygame.display.update()
+		if secondsLeft<=0:
+			break
+
 def playGame(data):
+	countdown(data)
 	while True:
 		oldTime = time.time()
 		runGame(data)
 		drawGame(data)
-		data.fpsClock.tick(data.fps)
+		data.fpsClock.tick(data.fps) 
 		data.fpsActual = int(1/(time.time() - oldTime))
+
 def endPreGame(data):
 	data.preGame = False
 def preGameInit(data):
-	data.preGame = False
+	data.preGame = True
+	data.background = pygame.image.load("startScreen.png")
 def preGameExit(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
-def preGameUser(data):
-	pass
+	if keyboard.is_pressed("space"):
+		endPreGame(data)
 def preGameDraw(data):
-	data.screen.fill((255,255,255))
+	data.screen.blit(data.background, (0,0))
+	pygame.display.flip()
+	pygame.display.update()
 def preGame(data):
 	preGameInit(data)
 	while True:
 		oldTime = time.time()
 		preGameExit(data)
-		preGameUser(data)
 		preGameDraw(data)
 		data.fpsClock.tick(data.fps)
 		if not data.preGame:
