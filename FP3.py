@@ -104,7 +104,7 @@ class Map():
 		self.drawFloors(data)
 		self.drawGrapplePlaces(data) 
 class Player():
-	def __init__(self):
+	def __init__(self, n):
 		self.x = 300
 		self.y = 1850
 		self.width = 100
@@ -126,37 +126,65 @@ class Player():
 		self.grappleExtendSpeed = 70
 		self.direction = 1
 		self.isGrappling = False
-		self.runningImages = self.createRunningImages()
-		self.idleImages = self.createIdleImages()
-		self.jumpingImages = self.createJumpingImages()
+		self.runningImages = self.createRunningImages(n)
+		self.idleImages = self.createIdleImages(n)
+		self.jumpingImages = self.createJumpingImages(n)
 		self.state = "running"
 		self.runningProgress = 0 
 		self.idleProgress = 0
 		self.jumpingProgress = 0
-	def createRunningImages(self):
-		names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
-		images = []
-		for name in names:
-			img = pygame.image.load("player1 sprite/%s.png" %name)
-			img = pygame.transform.scale(img, (self.width, self.height))
-			images.append(img)
-		return images
-	def createIdleImages(self):
-		names = ["idle-1", "idle-2", "idle-3", "idle-4", "idle-5", "idle-6","idle-7", "idle-8", "idle-9", "idle-10", "idle-11", "idle-12"]
-		images = []
-		for name in names:
-			img = pygame.image.load("player1 sprite/%s.png" %name)
-			img = pygame.transform.scale(img, (self.width, self.height))
-			images.append(img)
-		return images
-	def createJumpingImages(self):
-		names = ["jump-1", "jump-2"]
-		images = []
-		for name in names:
-			img = pygame.image.load("player1 sprite/%s.png" %name)
-			img = pygame.transform.scale(img, (self.width, self.height))
-			images.append(img)
-		return images
+	def createRunningImages(self,n):
+		if n == 0:
+			names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player1 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+		else:
+			names = ["adventurer-run-00","adventurer-run-01","adventurer-run-02","adventurer-run-03","adventurer-run-04","adventurer-run-05"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player2 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+	def createIdleImages(self,n):
+		if n == 0:
+			names = ["idle-1", "idle-2", "idle-3", "idle-4", "idle-5", "idle-6","idle-7", "idle-8", "idle-9", "idle-10", "idle-11", "idle-12"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player1 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+		else:
+			names = ["adventurer-idle-00", "adventurer-idle-00", "adventurer-idle-00", "adventurer-idle-01", "adventurer-idle-01","adventurer-idle-01","adventurer-idle-02","adventurer-idle-02","adventurer-idle-02"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player2 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+	def createJumpingImages(self,n):
+		if n == 0:
+			names = ["jump-1", "jump-2"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player1 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+		else:
+			names = ["adventurer-fall-00", "adventurer-fall-01"]
+			images = []
+			for name in names:
+				img = pygame.image.load("player2 sprite/%s.png" %name)
+				img = pygame.transform.scale(img, (self.width, self.height))
+				images.append(img)
+			return images
+
 	def grappleHit(self,data):
 		for pad in data.map.grapplePlaces:
 			px1, px2, py= pad[0][0], pad[0][1], pad[1]
@@ -319,6 +347,8 @@ class Player():
 		self.updateGrappleLocation(data)
 		if self.isOnWall(data):
 			self.ySpeed -= data.wallGravity
+		elif self.isOnFloor(data):
+			pass
 		elif not self.isGrappling:
 			self.ySpeed -= data.gravity
 		if self.crouched():
@@ -389,7 +419,9 @@ def init(data):
 	data.screen = pygame.display.set_mode((data.screenWidth, data.screenHeight),0,32)
 	clock = pygame.time.Clock()
 	pygame.key.set_repeat(1)
-	data.player1 = Player()
+	data.player1 = Player(0)
+	data.player2 = Player(1)
+	data.players = [data.player1, data.player2]
 	data.powerUps = PowerUps()
 	data.gravity = 3
 	data.map = Map()
@@ -416,7 +448,7 @@ def userInteractions(data):
 		data.player1.moveRight(data)
 	else:
 		data.player1.stop(data)
-	if keyboard.is_pressed("s"):
+	if keyboard.is_pressed("down"):
 		if data.player1.height == data.player1.stadningHeight:
 			data.player1.y += (data.player1.stadningHeight - data.player1.squatHeight)
 		data.player1.height = data.player1.squatHeight
@@ -431,17 +463,56 @@ def userInteractions(data):
 			else:
 				data.player1.height = data.player1.squatHeight
 				data.player1.y = oldY + data.player1.stadningHeight - data.player1.squatHeight # 800 - data.player1.squatHeight
-	if keyboard.is_pressed("a"):
+	if keyboard.is_pressed("m"):
 		data.player1.grapple(data)
 	else:
 		data.player1.endGrapple(data)
-	if keyboard.is_pressed("d"):
+	if keyboard.is_pressed("n"):
+		data.powerUps.boostPlayer(data)
+	else:
+		data.powerUps.unBoost(data)
+
+
+	if keyboard.is_pressed("w"):
+		data.player2.jump(data)
+		data.player2.djkeyLifted = False
+	else:
+		data.player2.djkeyLifted = True
+	if keyboard.is_pressed("a"):
+		data.player2.direction = -1
+		data.player2.moveLeft(data)
+	elif keyboard.is_pressed("d"):
+		data.player2.direction = 1
+		data.player2.moveRight(data)
+	else:
+		data.player2.stop(data)
+	if keyboard.is_pressed("s"):
+		if data.player2.height == data.player2.stadningHeight:
+			data.player2.y += (data.player2.stadningHeight - data.player2.squatHeight)
+		data.player2.height = data.player2.squatHeight
+	else:
+		if data.player2.height == data.player2.squatHeight:
+			data.player2.y -= (data.player2.stadningHeight - data.player2.squatHeight)
+			data.player2.height = data.player2.stadningHeight
+			oldY = data.player2.y
+			data.player2.fixFloorCollision(data)
+			if oldY == data.player2.y:
+				data.player2.height == data.player2.stadningHeight
+			else:
+				data.player2.height = data.player2.squatHeight
+				data.player2.y = oldY + data.player2.stadningHeight - data.player2.squatHeight # 800 - data.player2.squatHeight
+	if keyboard.is_pressed("g"):
+		data.player2.grapple(data)
+	else:
+		data.player2.endGrapple(data)
+	if keyboard.is_pressed("h"):
 		data.powerUps.boostPlayer(data)
 	else:
 		data.powerUps.unBoost(data)
 def periodical(data):
 	data.player1.move(data)
 	data.powerUps.update(data.player1, data)
+	data.player2.move(data)
 	data.crates.collidesWithPlayer(data)
 def runGame(data):
 	userInteractions(data)
@@ -470,6 +541,7 @@ def drawGame(data):
 	data.powerUps.draw(data)
 	data.crates.drawCrates(data)
 	data.player1.drawPlayer(data)
+	data.player2.drawPlayer(data)
 	drawFps(data)
 	pygame.display.flip()
 	pygame.display.update()
