@@ -8,7 +8,11 @@ import math
 
 """
 Players sprites were taken from here:
-https://jesse-m.itch.io/jungle-pack/download/eyJleHBpcmVzIjoxNTQyODU5Mzc2LCJpZCI6MTMwMDQ5fQ%3d%3d.wag%2bBxv0sMSYsZWrkavm82ppU5M%3d
+https://jesse-m.itch.io/jungle-pack
+https://rvros.itch.io/animated-pixel-hero
+Power Up Image:
+https://banner2.kisspng.com/20180329/xeq/kisspng-dota-2-defense-of-the-ancients-invoker-video-game-orb-5abd7e8a203a64.364252811522368138132.jpg
+
 """
 class Crates():
 	def __init__(self):
@@ -20,7 +24,6 @@ class Crates():
 		for player in data.players:
 			for crate in self.crates:
 				x,y,w,h = player.x, player.y, player.width, player.height
-				print(crate[1] , y)
 				if crate[0] < x + w and crate[0]  + self.size > x:
 					if crate[1] < y+h and crate[1] + self.size > y:
 						player.stunned = 15
@@ -40,6 +43,9 @@ class PowerUps():
 		self.speedBoost = [[2000, 900]]
 		self.boxDrops = [[1000, 550]]
 		self.powers = []
+		self.boostImage = pygame.transform.scale(pygame.image.load("boostImage.png"), (self.puSize, self.puSize))
+		self.powerUpImage = pygame.transform.scale(pygame.image.load("powerUpImage.png"), (self.puSize, self.puSize))
+		
 	def drawBoostBar(self, data):
 		for i in range(len(data.players)):
 			text = "Player %d Boost" %(i + 1)
@@ -47,7 +53,7 @@ class PowerUps():
 			color = (0,255,0)
 			text = font.render(text, True, color)
 			data.screen.blit(text, (60 + 282*i,20))
-			pygame.draw.rect(data.screen, (0,255,0), [242 + 282*i,28, data.players[i].boost, 15])
+			pygame.draw.rect(data.screen, (0,255,0), [200 + 282*i,28, data.players[i].boost, 15])
 
 	def boostPlayer(self,data, player):
 		p1 = player
@@ -61,10 +67,10 @@ class PowerUps():
 	def draw(self,data):
 		for boost in self.speedBoost:
 			x,y,s = boost[0] - data.screenX, boost[1] - data.screenY, self.puSize
-			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+			data.screen.blit(self.boostImage, (x,y))
 		for item in self.boxDrops:
 			x,y,s = item[0] - data.screenX, item[1] - data.screenY, self.puSize
-			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+			data.screen.blit(self.powerUpImage, (x,y))
 		self.drawBoostBar(data)
 
 	def collidesWithPlayer(self,data):
@@ -92,11 +98,53 @@ class Map():
 	def __init__(self):
 		self.mapWidth = 3000
 		self.mapHeight = 2000
-		self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
+		self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010], [(0,3000), 0]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
 		self.walls = [[0, (0,2000)], [3000, (0,2000)], [800, (700, 1600)], [900, (700, 1600)], [1300, (1150, 1950)], [1400, (1250, 1950)], [2600, (600,1000)], [2700, (600,1000)], [300, (1600, 1680)], [1000, (1600, 1680)], [500, (600,700)], [500, (1150, 1250)], [1750, (950, 1010)], [2100, (950, 1010)]]
 		self.grapplePlaces = [[(600, 2600), 10], [(400,1000), 1685]]
 		self.picture = pygame.image.load("level-1.png")
 		self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
+		self.xGreatorSection = [[0, 1680,1300,2000], [1300, 700, 3000,1150]] #x,y,x,y
+		self.xLesserSection = [[600, 0, 2700, 600]]
+		self.yLesserSection = [[900, 700, 1300, 1680], [2700, 0,3000, 1150]]
+		self.yGreatorSection = [[0,600, 800,1680]]
+		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
+	def getLeaderSection(self,data, player):
+		p = player
+		for section in self.sections:
+			for box in section:
+				if p.x >= box[0] and p.x <= box[2] and p.y >= box[1] and p.y <= box[3]:
+					return section
+		print("section error fuck you spencer, this is a terrible idea")
+		return 1/0
+	def findNewLeader(self, data):
+		if self.getLeaderSection(data, data.player2) != self.getLeaderSection(data, data.player1):
+			return
+		else:
+			section = self.getLeaderSection(data, data.currentLeader)
+			if section == self.xGreatorSection:
+				if data.player1.x > data.player2.x:
+					data.currentLeader = data.player1
+				else:
+					data.currentLeader = data.player2
+			elif section == self.xLesserSection:
+				if data.player1.x < data.player2.x:
+					data.currentLeader = data.player1
+				else:
+					data.currentLeader = data.player2
+			elif section == self.yLesserSection:
+				if data.player1.y < data.player2.y:
+					data.currentLeader = data.player1
+				else:
+					data.currentLeader = data.player2
+			elif section == self.yGreatorSection:
+				if data.player1.y > data.player2.y:
+					data.currentLeader = data.player1
+				else:
+					data.currentLeader = data.player2
+			else:
+				print("you fucked up")
+				return 1/0
+
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
 	def drawGrapplePlaces(self, data):
@@ -132,7 +180,7 @@ class Player():
 		self.xSpeed = 0
 		self.ySpeed = 0
 		self.color = (255,0,0)
-		self.jumpStrength = 45
+		self.jumpStrength = 35
 		self.runningSpeed = 25
 		self.unBoostedRunningSpeed = self.runningSpeed
 		self.djUsed = False
@@ -219,7 +267,7 @@ class Player():
 	def grappleHit(self,data):
 		for pad in data.map.grapplePlaces:
 			px1, px2, py= pad[0][0], pad[0][1], pad[1]
-			if self.grapplingHook[1][1] > py:
+			if self.grapplingHook[1][1] > py or self.grapplingHook[0][1] < py :
 				continue
 			gx1,gy1,gx2,gy2 = self.grapplingHook[0][0], self.grapplingHook[0][1], self.grapplingHook[1][0], self.grapplingHook[1][1]
 			try:
@@ -244,12 +292,13 @@ class Player():
 	def swingFromGrapple(self, data):
 		if self.isOnFloor(data) or self.isOnWall(data):
 			self.grappleState = 3
+			self.xSpeed, self.ySpeed = 0,0
 			return
 		self.isGrappling = True
 		g = self.grapplingHook
 		length = ((g[0][0] - g[1][0])**2 + (g[0][1] - g[1][1])**2)**.5
 		angle = math.atan((g[0][0] - g[1][0])/(g[0][1] - g[1][1]))
-		newAngle = angle + (self.direction/(length))*20
+		newAngle = angle + (self.direction/(length))*30
 		self.xSpeed = (g[1][0] - g[0][0]) + math.sin(newAngle)*length
 		self.ySpeed = -(math.cos(newAngle)*length - (g[0][1] - g[1][1]))
 
@@ -328,6 +377,7 @@ class Player():
 					else:
 						self.y = y - self.height
 					self.ySpeed = 0
+
 		
 	def fixWallCollision(self,data):
 		for wall in data.map.walls:
@@ -376,7 +426,7 @@ class Player():
 
 	def move(self,data):
 		self.updateGrappleLocation(data)
-		if self.isOnWall(data):
+		if self.isOnWall(data) and self.ySpeed < 0:
 			self.ySpeed -= data.wallGravity
 		elif self.isOnFloor(data):
 			pass
@@ -459,6 +509,7 @@ def init(data):
 	data.fpsActual = 0
 	pygame.font.init()	
 	data.crates = Crates()
+	data.currentLeader = data.player1
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -554,8 +605,10 @@ def runGame(data):
 	userInteractions(data)
 	periodical(data)
 def moveScreen(data):
-	data.screenX = ((data.player1.x + data.player2.x)/2) - data.screenWidth/2
-	data.screenY = ((data.player1.y+ data.player2.y)/2) - data.screenHeight/2
+	data.map.findNewLeader(data)
+	p = data.currentLeader
+	data.screenX = p.x - data.screenWidth/2
+	data.screenY = p.y - data.screenHeight/2
 	if data.screenX < 0:
 		data.screenX = 0
 	elif data.screenX + data.screenWidth > data.map.mapWidth:
@@ -642,4 +695,4 @@ def startGame():
 	preGame(data)
 	playGame(data)
 
-startGame()
+startGame()  
