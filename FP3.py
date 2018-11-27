@@ -16,80 +16,96 @@ class Crates():
 		self.size = 60
 		self.image = pygame.image.load("crate.png")
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
-		self.stunned = 0
 	def collidesWithPlayer(self,data):
-		for crate in self.crates:
-			x,y,w,h = data.player1.x, data.player1.y, data.player1.width, data.player1.height
-			print(crate[1] , y)
-			if crate[0] < x + w and crate[0]  + self.size > x:
-				if crate[1] < y+h and crate[1] + self.size > y:
-					self.stunned = 15
-					self.crates.remove(crate) 
-					if data.player1.grappleState == 1 or data.player1.grappleState == 2:
-						data.player1.grappleState = 3
-		if self.stunned > 0:
-			self.stunned -= 1
+		for player in data.players:
+			for crate in self.crates:
+				x,y,w,h = player.x, player.y, player.width, player.height
+				print(crate[1] , y)
+				if crate[0] < x + w and crate[0]  + self.size > x:
+					if crate[1] < y+h and crate[1] + self.size > y:
+						player.stunned = 15
+						self.crates.remove(crate) 
+						if player.grappleState == 1 or player.grappleState == 2:
+							player.grappleState = 3
+			if player.stunned > 0:
+				player.stunned -= 1
 	def drawCrates(self,data):
 		for crate in self.crates:
 			data.screen.blit(self.image, (crate[0]-data.screenX, crate[1] - data.screenY))
+	def createCrate(self, x, y):
+		self.crates.append([x,y])
 class PowerUps():
 	def __init__(self):
 		self.puSize = 50
 		self.speedBoost = [[2000, 900]]
+		self.boxDrops = [[1000, 550]]
 		self.powers = []
-		self.boost = 0
 	def drawBoostBar(self, data):
-		text = "Boost"
-		font = pygame.font.SysFont('Comic Sans MS', 20)
-		color = (0,255,0)
-		text = font.render(text, True, color)
-		data.screen.blit(text, (60,20))
-		pygame.draw.rect(data.screen, (0,255,0), [125,28, self.boost, 15])
+		for i in range(len(data.players)):
+			text = "Player %d Boost" %(i + 1)
+			font = pygame.font.SysFont('Comic Sans MS', 20)
+			color = (0,255,0)
+			text = font.render(text, True, color)
+			data.screen.blit(text, (60 + 282*i,20))
+			pygame.draw.rect(data.screen, (0,255,0), [242 + 282*i,28, data.players[i].boost, 15])
 
-	def boostPlayer(self,data):
-		p1 = data.player1
-		if self.boost> 0:
-			self.boost -= 1
+	def boostPlayer(self,data, player):
+		p1 = player
+		if p1.boost> 0:
+			p1.boost -= 1
 			p1.runningSpeed = 2*p1.unBoostedRunningSpeed
 		else:
 			p1.runningSpeed = p1.unBoostedRunningSpeed
-	def unBoost(self,data):
-		data.player1.runningSpeed = data.player1.unBoostedRunningSpeed
+	def unBoost(self,data, player):
+		player.runningSpeed = player.unBoostedRunningSpeed
 	def draw(self,data):
 		for boost in self.speedBoost:
 			x,y,s = boost[0] - data.screenX, boost[1] - data.screenY, self.puSize
 			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
+		for item in self.boxDrops:
+			x,y,s = item[0] - data.screenX, item[1] - data.screenY, self.puSize
+			pygame.draw.rect(data.screen, (0,255,0), [x, y, s, s])
 		self.drawBoostBar(data)
 
-	def collidesWithPlayer(self, player1,data):
-		for boost in self.speedBoost:
-			if player1.x <= boost[0] + self.puSize and player1.x + player1.width >= boost[0]:
-				if player1.y <= boost[1] + self.puSize and player1.y + player1.height >= boost[1]:
-					self.speedBoost.remove(boost)
-					self.boost += 100
-	def updatePowers(self,data):
-		for power in self.powers:
-			power[1] -= 1
-			if power[1] <= 0:
-				pass
+	def collidesWithPlayer(self,data):
+		for player in data.players:
+			for boost in self.speedBoost:
+				if player.x <= boost[0] + self.puSize and player.x + player.width >= boost[0]:
+					if player.y <= boost[1] + self.puSize and player.y + player.height >= boost[1]:
+						self.speedBoost.remove(boost)
+						player.boost += 100
+			for item in self.boxDrops:
+				if player.x <= item[0] + self.puSize and player.x + player.width >= item[0]:
+					if player.y <= item[1] + self.puSize and player.y + player.height >= item[1]:
+						if player.powers == []:
+							player.powers = ["boxes", 3]
+							self.boxDrops.remove(item)
+	def removePowerUps(self, data):
+		for player in data.players:
+			if len(player.powers) == 2 and player.powers[1] <= 0:
+				player.powers = []
+
 	def update(self, player1, data):
-		self.collidesWithPlayer(player1,data)
-		self.updatePowers(data)
+		self.collidesWithPlayer(data)
+		self.removePowerUps(data)
 class Map():
 	def __init__(self):
 		self.mapWidth = 3000
 		self.mapHeight = 2000
 		self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
 		self.walls = [[0, (0,2000)], [3000, (0,2000)], [800, (700, 1600)], [900, (700, 1600)], [1300, (1150, 1950)], [1400, (1250, 1950)], [2600, (600,1000)], [2700, (600,1000)], [300, (1600, 1680)], [1000, (1600, 1680)], [500, (600,700)], [500, (1150, 1250)], [1750, (950, 1010)], [2100, (950, 1010)]]
-		self.grapplePlaces = [[(600, 2600), 10]]
+		self.grapplePlaces = [[(600, 2600), 10], [(400,1000), 1685]]
 		self.picture = pygame.image.load("level-1.png")
 		self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
 	def drawGrapplePlaces(self, data):
+		pass 
+		"""
 		for grap in self.grapplePlaces:
 			y,x1,x2 = grap[1] - data.screenY, grap[0][0]-data.screenX, grap[0][1] - data.screenX
 			pygame.draw.line(data.screen, (0,0,255) , (x1,y), (x2,y), 5)
+		"""
 	def drawWalls(self,data):
 		for wall in self.walls:
 			x,y1,y2 = wall[0] - data.screenX, wall[1][0] - data.screenY, wall[1][1] - data.screenY
@@ -105,6 +121,10 @@ class Map():
 		self.drawGrapplePlaces(data) 
 class Player():
 	def __init__(self, n):
+		self.powerUpKeyLifted = True
+		self.powers = [] 
+		self.boost = 0
+		self.stunned = 0
 		self.x = 300
 		self.y = 1850
 		self.width = 100
@@ -133,6 +153,12 @@ class Player():
 		self.runningProgress = 0 
 		self.idleProgress = 0
 		self.jumpingProgress = 0
+		if n == 0:
+			self.wallSlidingPicture = pygame.image.load("player1 sprite/wallSlide.png" )
+			self.wallSlidingPicture = pygame.transform.scale(self.wallSlidingPicture, (self.width, self.height))
+		else:
+			self.wallSlidingPicture = pygame.image.load("player2 sprite/adventurer-crnr-grb-00.png" )
+			self.wallSlidingPicture = pygame.transform.scale(self.wallSlidingPicture, (self.width, self.height))
 	def createRunningImages(self,n):
 		if n == 0:
 			names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
@@ -184,12 +210,17 @@ class Player():
 				img = pygame.transform.scale(img, (self.width, self.height))
 				images.append(img)
 			return images
-
+	def userPowerUp(self,data):
+		if self.powerUpKeyLifted:
+			if len(self.powers) == 2 and self.powers[0] == "boxes":
+				data.crates.createCrate(self.x - self.width*self.direction, self.y + self.height - data.crates.size)
+				self.powers[1] -= 1
+			self.powerUpKeyLifted = False
 	def grappleHit(self,data):
 		for pad in data.map.grapplePlaces:
 			px1, px2, py= pad[0][0], pad[0][1], pad[1]
 			if self.grapplingHook[1][1] > py:
-				return (False,0,0)
+				continue
 			gx1,gy1,gx2,gy2 = self.grapplingHook[0][0], self.grapplingHook[0][1], self.grapplingHook[1][0], self.grapplingHook[1][1]
 			try:
 				slope = (gx2 - gx1)/(gy1 - gy2) #negative
@@ -358,7 +389,7 @@ class Player():
 			elif self.xSpeed > -0.5 and self.xSpeed < 0:
 				self.xSpeed = -.5
 		self.y -= self.ySpeed
-		if data.crates.stunned <= 0:
+		if self.stunned <= 0:
 			self.x += self.xSpeed
 		else:
 			self.x += self.xSpeed/5
@@ -383,7 +414,7 @@ class Player():
 		y -= data.screenY
 		
 		if self.height == self.squatHeight:
-			picture = pygame.image.load("player1 sprite/wallSlide.png" )
+			picture = self.wallSlidingPicture
 			if self.direction > 0:
 				picture = pygame.transform.rotate(picture, 270)
 			else:
@@ -396,11 +427,9 @@ class Player():
 			self.idleProgress += 1
 			picture = self.idleImages[self.idleProgress%len(self.idleImages)]
 		elif self.isOnWall(data):
-			picture = pygame.image.load("player1 sprite/wallSlide.png" )
-			picture = pygame.transform.scale(picture, (self.width, self.height))
+			picture = self.wallSlidingPicture
 		elif self.isGrappling:
-			picture = pygame.image.load("player1 sprite/wallSlide.png" )
-			picture = pygame.transform.scale(picture, (self.width, self.height))
+			picture = self.wallSlidingPicture
 		else:
 			#self.jumpingProgress += 1
 			picture = self.jumpingImages[self.jumpingProgress%len(self.jumpingImages)]
@@ -463,15 +492,18 @@ def userInteractions(data):
 			else:
 				data.player1.height = data.player1.squatHeight
 				data.player1.y = oldY + data.player1.stadningHeight - data.player1.squatHeight # 800 - data.player1.squatHeight
-	if keyboard.is_pressed("m"):
+	if keyboard.is_pressed("k"):
 		data.player1.grapple(data)
 	else:
 		data.player1.endGrapple(data)
-	if keyboard.is_pressed("n"):
-		data.powerUps.boostPlayer(data)
+	if keyboard.is_pressed("l"):
+		data.powerUps.boostPlayer(data, data.player1)
 	else:
-		data.powerUps.unBoost(data)
-
+		data.powerUps.unBoost(data, data.player1)
+	if keyboard.is_pressed("j"):
+		data.player1.userPowerUp(data)
+	else:
+		data.player1.powerUpKeyLifted = True
 
 	if keyboard.is_pressed("w"):
 		data.player2.jump(data)
@@ -506,9 +538,13 @@ def userInteractions(data):
 	else:
 		data.player2.endGrapple(data)
 	if keyboard.is_pressed("h"):
-		data.powerUps.boostPlayer(data)
+		data.powerUps.boostPlayer(data, data.player2)
 	else:
-		data.powerUps.unBoost(data)
+		data.powerUps.unBoost(data, data.player2)
+	if keyboard.is_pressed("f"):
+		data.player2.userPowerUp(data)
+	else:
+		data.player2.powerUpKeyLifted = True
 def periodical(data):
 	data.player1.move(data)
 	data.powerUps.update(data.player1, data)
@@ -518,8 +554,8 @@ def runGame(data):
 	userInteractions(data)
 	periodical(data)
 def moveScreen(data):
-	data.screenX = data.player1.x - data.screenWidth/2
-	data.screenY = data.player1.y - data.screenHeight/2
+	data.screenX = ((data.player1.x + data.player2.x)/2) - data.screenWidth/2
+	data.screenY = ((data.player1.y+ data.player2.y)/2) - data.screenHeight/2
 	if data.screenX < 0:
 		data.screenX = 0
 	elif data.screenX + data.screenWidth > data.map.mapWidth:
