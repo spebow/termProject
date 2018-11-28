@@ -104,7 +104,7 @@ class Map():
 		self.picture = pygame.image.load("level-1.png")
 		self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
 		self.xGreatorSection = [[0, 1680,1300,2000], [1300, 700, 3000,1150]] #x,y,x,y
-		self.xLesserSection = [[600, 0, 2700, 600]]
+		self.xLesserSection = [[0, 0, 2700, 600]]
 		self.yLesserSection = [[900, 700, 1300, 1680], [2700, 0,3000, 1150]]
 		self.yGreatorSection = [[0,600, 800,1680]]
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
