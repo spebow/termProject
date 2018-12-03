@@ -6,18 +6,20 @@ from pygame.locals import *
 import keyboard
 import math
 
+
+
 """
 Players sprites were taken from here:
 https://jesse-m.itch.io/jungle-pack
 https://rvros.itch.io/animated-pixel-hero
 Power Up Image:
 https://banner2.kisspng.com/20180329/xeq/kisspng-dota-2-defense-of-the-ancients-invoker-video-game-orb-5abd7e8a203a64.364252811522368138132.jpg
-
 """
+
 class Crates():
 	def __init__(self):
 		self.crates = [[2600,1000]]
-		self.size = 60
+		self.size = 30
 		self.image = pygame.image.load("crate.png")
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
 	def collidesWithPlayer(self,data):
@@ -59,7 +61,7 @@ class PowerUps():
 		p1 = player
 		if p1.boost> 0:
 			p1.boost -= 1
-			p1.runningSpeed = 2*p1.unBoostedRunningSpeed
+			p1.runningSpeed = 1.3*p1.unBoostedRunningSpeed
 		else:
 			p1.runningSpeed = p1.unBoostedRunningSpeed
 	def unBoost(self,data, player):
@@ -93,20 +95,33 @@ class PowerUps():
 
 	def update(self, player1, data):
 		self.collidesWithPlayer(data)
-		self.removePowerUps(data)
+		self.removePowerUps(data) 
 class Map():
 	def __init__(self):
-		self.mapWidth = 3000
-		self.mapHeight = 2000
-		self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010], [(0,3000), 0]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
-		self.walls = [[0, (0,2000)], [3000, (0,2000)], [800, (700, 1600)], [900, (700, 1600)], [1300, (1150, 1950)], [1400, (1250, 1950)], [2600, (600,1000)], [2700, (600,1000)], [300, (1600, 1680)], [1000, (1600, 1680)], [500, (600,700)], [500, (1150, 1250)], [1750, (950, 1010)], [2100, (950, 1010)]]
-		self.grapplePlaces = [[(600, 2600), 10], [(400,1000), 1685]]
-		self.picture = pygame.image.load("level-1.png")
-		self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
-		self.xGreatorSection = [[0, 1680,1300,2000], [1300, 700, 3000,1150]] #x,y,x,y
-		self.xLesserSection = [[0, 0, 2700, 600]]
-		self.yLesserSection = [[900, 700, 1300, 1680], [2700, 0,3000, 1150]]
-		self.yGreatorSection = [[0,600, 800,1680]]
+		self.n = 1
+		if self.n == 0:
+			self.mapWidth = 3000
+			self.mapHeight = 2000
+			self.floors = [[(0,3000),2000],[(0,3000),1950],[(300,1000),1600],[(300,1000),1680],[(1300,3000),1150],[(1400,3000),1250],[(500,2700),600],[(500,2600),700],[(0,500),1150],[(0,500),1250], [(2600, 2700), 1000], [(1750, 2100), 950], [(1750, 2100), 1010], [(0,3000), 0]]#[[(0,self.mapWidth), self.mapHeight], [(200,self.mapWidth - 200),500] , [(200,self.mapWidth - 200), 740], [(0,self.mapWidth), 0]]
+			self.walls = [[0, (0,2000)], [3000, (0,2000)], [800, (700, 1600)], [900, (700, 1600)], [1300, (1150, 1950)], [1400, (1250, 1950)], [2600, (600,1000)], [2700, (600,1000)], [300, (1600, 1680)], [1000, (1600, 1680)], [500, (600,700)], [500, (1150, 1250)], [1750, (950, 1010)], [2100, (950, 1010)]]
+			self.grapplePlaces = [[(600, 2600), 10], [(400,1000), 1685]]
+			self.picture = pygame.image.load("level-1.png")
+			self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
+			self.xGreatorSection = [[0, 1680,1300,2000], [1300, 700, 3000,1150]] #x,y,x,y
+			self.xLesserSection = [[0, 0, 2700, 600]]
+			self.yLesserSection = [[900, 700, 1300, 1680], [2700, 0,3000, 1150]]
+			self.yGreatorSection = [[0,600, 800,1680]]
+		else:
+			self.mapWidth, self.mapHeight = 4750, 2500
+			self.picture = pygame.image.load("level2.jpg")
+			self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
+			self.floors = [[(0, 850), 2400],[(850, 1450), 2475], [(1450, 4675), 2375], [(950, 950+300), 2250], [(950, 950+300), 2300], [(540, 540+90),1990+350], [(350, 1450),1990], [(1450,4100),1690+75], [(1150, 4200), 1690], [(2000,2400),1975], [(2000,2400), 1975 + 75], [(2480, 2880), 1825], [(2480, 2880), 1900], [(4100,4200),1690 + 450], [(4400,4475),1540], [(4400,4475),1540+760],[(3600, 3700), 1590], [(3600, 4675),1200], [(4375, 4475),1100], [(1900,4475),690], [(3450,3950),515], [(3450,3950),590], [(1450, 3050), 1190], [(1075, 4375),790], [(1900, 3300), 790], [(1450, 3050), 1290], [(1350, 1450), 1540], [(350, 1150), 625], ]
+			self.walls = [[540, (1990, 2340)], [630, (1990, 2340)], [850, (2400, 2475)], [1450, (2375, 2475)], [950, (2250, 2300)]]
+			self.grapplePlaces = []
+			self.xGreatorSection = []
+			self.xLesserSection = []
+			self.yGreatorSection = []
+			self.yLesserSection = []
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
 	def getLeaderSection(self,data, player):
 		p = player
@@ -115,7 +130,7 @@ class Map():
 				if p.x >= box[0] and p.x <= box[2] and p.y >= box[1] and p.y <= box[3]:
 					return section
 		print("section error fuck you spencer, this is a terrible idea")
-		return 1/0
+		#return 1/0
 	def findNewLeader(self, data):
 		if self.getLeaderSection(data, data.player2) != self.getLeaderSection(data, data.player1):
 			return
@@ -143,7 +158,7 @@ class Map():
 					data.currentLeader = data.player2
 			else:
 				print("you fucked up")
-				return 1/0
+				#return 1/0
 
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
@@ -155,13 +170,19 @@ class Map():
 			pygame.draw.line(data.screen, (0,0,255) , (x1,y), (x2,y), 5)
 		"""
 	def drawWalls(self,data):
+		pass
+		""""
 		for wall in self.walls:
 			x,y1,y2 = wall[0] - data.screenX, wall[1][0] - data.screenY, wall[1][1] - data.screenY
 			pygame.draw.line(data.screen, (255,255,255), (x,y1), (x,y2), 2)
+			"""
 	def drawFloors(self,data):
+		pass
+		"""
 		for floor in self.floors:
 			x1,y,x2 = floor[0][0] - data.screenX, floor[1] - data.screenY, floor[0][1] - data.screenX
 			pygame.draw.line(data.screen, (255,255,255), (x1,y), (x2,y), 2)
+			"""
 	def drawMap(self, data):
 		self.drawBackground(data)
 		self.drawWalls(data)
@@ -169,25 +190,26 @@ class Map():
 		self.drawGrapplePlaces(data) 
 class Player():
 	def __init__(self, n):
+		self.n = n
 		self.powerUpKeyLifted = True
 		self.powers = [] 
 		self.boost = 0
 		self.stunned = 0
 		self.x = 300
 		self.y = 1850
-		self.width = 100
-		self.height = 100
+		self.width = 50
+		self.height = 50
 		self.xSpeed = 0
 		self.ySpeed = 0
 		self.color = (255,0,0)
-		self.jumpStrength = 35
+		self.jumpStrength = 25
 		self.runningSpeed = 25
 		self.unBoostedRunningSpeed = self.runningSpeed
 		self.djUsed = False
 		self.djkeyLifted = False
 		self.wjUsed = False
-		self.squatHeight = 50
-		self.stadningHeight = 100
+		self.squatHeight = 25
+		self.stadningHeight = 50
 		self.grappleState = 0 #0 is not grappling, 1 is extending, 2 is swining, 3 is retracting
 		self.grappleAngle = 60
 		self.grapplingHook = [[self.x + self.width/2, self.y],[self.x + self.width/2, self.y]]
@@ -207,6 +229,8 @@ class Player():
 		else:
 			self.wallSlidingPicture = pygame.image.load("player2 sprite/adventurer-crnr-grb-00.png" )
 			self.wallSlidingPicture = pygame.transform.scale(self.wallSlidingPicture, (self.width, self.height))
+	def __repr__(self):
+		return "player " + str(self.n + 1)
 	def createRunningImages(self,n):
 		if n == 0:
 			names = ["run-1", "run-2", "run-3", "run-4", "run-5", "run-6","run-7", "run-8"]
@@ -491,6 +515,8 @@ class Player():
 		#pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
 		self.drawGrapplingHook(data)
 def init(data):
+	data.endGame = True
+	data.playingGame = True
 	data.screenWidth, data.screenHeight = 1000, 600
 	data.fps = 30
 	pygame.init()
@@ -607,8 +633,21 @@ def runGame(data):
 def moveScreen(data):
 	data.map.findNewLeader(data)
 	p = data.currentLeader
-	data.screenX = p.x - data.screenWidth/2
-	data.screenY = p.y - data.screenHeight/2
+	if abs(data.player1.x - data.player2.x) < data.screenWidth/1.3:
+		data.screenX = ((data.player1.x + data.player2.x)/2) - data.screenWidth/2
+	else:
+		if p.x > min(data.player1.x, data.player2.x):
+			data.screenX = p.x - data.screenWidth*(1.15/1.3)
+		else:
+			data.screenX = p.x - data.screenWidth* (.15/1.3)
+
+	if abs(data.player1.y - data.player2.y) < data.screenHeight/1.3:
+		data.screenY = ((data.player1.y + data.player2.y)/2) - data.screenHeight/2
+	else:
+		if p.y > min(data.player1.y, data.player2.y):
+			data.screenY = p.y - data.screenHeight*(1.15/1.3)
+		else:
+			data.screenY = p.y - data.screenHeight* (.15/1.3)
 	if data.screenX < 0:
 		data.screenX = 0
 	elif data.screenX + data.screenWidth > data.map.mapWidth:
@@ -653,15 +692,47 @@ def countdown(data):
 		pygame.display.update()
 		if secondsLeft<=0:
 			break
-
+def endGame(data):
+	 for player in data.players:
+	 	if player.x > data.screenX + data.screenWidth or player.x + player.width < data.screenX:
+	 			data.playingGame = False
+	 	if player.y + player.height < data.screenY or player.y > data.screenY + data.screenHeight:
+	 			data.playingGame = False
+def endGameUserInteractions(data):
+	for event in pygame.event.get():
+		if event.type == QUIT:
+			pygame.quit()
+			sys.exit()
+	if keyboard.is_pressed("space"):
+		data.endGame = False
+def drawEndGame(data):
+	data.map.drawMap(data)
+	data.powerUps.draw(data)
+	data.crates.drawCrates(data)
+	data.player1.drawPlayer(data)
+	data.player2.drawPlayer(data)
+	text = str(data.currentLeader) + " wins!, press space to restart"
+	font = pygame.font.SysFont('Comic Sans MS', 20)
+	color = (255,0,0)
+	text = font.render(text, True, color)
+	data.screen.blit(text, (data.screenWidth/2,data.screenHeight/2))
+	pygame.display.flip()
+	pygame.display.update()
+def runEndGame(data):
+	while data.endGame:
+		endGameUserInteractions(data)
+		drawEndGame(data)
+	startGame()
 def playGame(data):
 	countdown(data)
-	while True:
+	while data.playingGame:
 		oldTime = time.time()
 		runGame(data)
 		drawGame(data)
+		endGame(data)
 		data.fpsClock.tick(data.fps) 
 		data.fpsActual = int(1/(time.time() - oldTime))
+	runEndGame(data)
 
 def endPreGame(data):
 	data.preGame = False
