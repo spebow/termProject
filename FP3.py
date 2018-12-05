@@ -108,6 +108,7 @@ class Map():
 			self.xLesserSection = [[0, 0, 2700, 600]]
 			self.yLesserSection = [[900, 700, 1300, 1680], [2700, 0,3000, 1150]]
 			self.yGreatorSection = [[0,600, 800,1680]]
+			self.AICheckpoints = []
 		else:
 			self.mapWidth, self.mapHeight = 4750, 2500
 			self.picture = pygame.image.load("level2.jpg")
@@ -119,7 +120,12 @@ class Map():
 			self.xLesserSection = [[3600, 1300, 4750, 1690], [1450, 0, 4750, 690 ], [1350, 1190, 3300, 1690], [0, 0, 1350, 625]]
 			self.yGreatorSection = [[0, 625, 350, 2400]]
 			self.yLesserSection = [[4200,1690,4750,2140],[3300, 1200,3600, 1690], [4475,690, 4675, 1200], [1150, 625, 1350, 1690]]
+			self.AICheckpoints = [(1100, 2425), (1300,2425), (2000, 2325), (4200,2325), (4350, 2250), (4150, 2300)]
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
+	def drawAICheckPouints(self, data):
+		for p in self.AICheckpoints:
+			pygame.draw.ellipse(data.screen, (255,0,0), [p[0], p[1], 10, 10])
+			print("fds")
 	def getLeaderSection(self,data, player):
 		p = player
 		for section in self.sections:
@@ -187,6 +193,7 @@ class Map():
 		self.drawWalls(data)
 		self.drawFloors(data)
 		self.drawGrapplePlaces(data) 
+		self.drawAICheckPouints(data)
 class Player():
 	def __init__(self, n):
 		self.n = n
@@ -194,8 +201,8 @@ class Player():
 		self.powers = [] 
 		self.boost = 0
 		self.stunned = 0
-		self.x = 300
-		self.y = 1850
+		self.x = 100
+		self.y = 2350
 		self.width = 50
 		self.height = 50
 		self.xSpeed = 0
@@ -389,7 +396,6 @@ class Player():
 		
 		return False
 	def fixFloorCollision(self, data):
-		print(self.ySpeed)
 		for floor in data.map.floors:
 			x1,x2,y = floor[0][1], floor[0][0], floor[1]
 			if self.x < max(x1,x2) and self.x + self.width > min(x1,x2):
@@ -517,10 +523,22 @@ class Player():
 		self.drawGrapplingHook(data)
 class AI(Player):
 	def __init__(self, n):
-		super().__init__(self,n)
-
+		super().__init__(n)
+		self.currentPoint = 0
 	def computerInteractions(self, data):
-		pass
+		cp, i = data.map.AICheckpoints, self.currentPoint
+		if abs(self.x - cp[i][0]) <= self.xSpeed and abs(self.y-cp[i][1]) <= self.ySpeed:
+			self.currentPoint += 1
+			print("trip")
+		if self.currentPoint >= len(cp):
+			self.currentPoint = 0
+		i = self.currentPoint
+		if self.x < cp[i][0]:
+			self.moveRight(data)
+		if self.x > cp[i][0]:
+			self.moveLeft(data)
+		if self.y > cp[i][1]:
+			self.jump(data)
 def init(data):
 	data.endGame = True
 	data.playingGame = True
@@ -532,7 +550,7 @@ def init(data):
 	clock = pygame.time.Clock()
 	pygame.key.set_repeat(1)
 	data.player1 = Player(0)
-	data.player2 = Player(1)
+	data.player2 = AI(1)
 	data.players = [data.player1, data.player2]
 	data.powerUps = PowerUps()
 	data.gravity = 3
@@ -542,7 +560,7 @@ def init(data):
 	data.fpsActual = 0
 	pygame.font.init()	
 	data.crates = Crates()
-	data.currentLeader = data.player1
+	data.currentLeader = data.player1 
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
