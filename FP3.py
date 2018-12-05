@@ -50,12 +50,9 @@ class PowerUps():
 		
 	def drawBoostBar(self, data):
 		for i in range(len(data.players)):
-			text = "Player %d Boost" %(i + 1)
-			font = pygame.font.SysFont('Comic Sans MS', 20)
-			color = (0,255,0)
-			text = font.render(text, True, color)
-			data.screen.blit(text, (60 + 282*i,20))
-			pygame.draw.rect(data.screen, (0,255,0), [200 + 282*i,28, data.players[i].boost, 15])
+			img = pygame.image.load("untitled (5).png")
+			pygame.transform.scale(img, (200, 130))
+			data.screen.blit(img, (50, 0))
 
 	def boostPlayer(self,data, player):
 		p1 = player
@@ -115,13 +112,13 @@ class Map():
 			self.mapWidth, self.mapHeight = 4750, 2500
 			self.picture = pygame.image.load("level2.jpg")
 			self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
-			self.floors = [[(3700, 4675), 1300],[(0, 850), 2400],[(850, 1450), 2475], [(1450, 4675), 2375], [(950, 950+300), 2250], [(950, 950+300), 2300], [(540, 540+90),1990+350], [(350, 1450),1990], [(1450,4100),1690+75], [(1150, 4200), 1690], [(2000,2400),1975], [(2000,2400), 1975 + 75], [(2480, 2880), 1825], [(2480, 2880), 1900], [(4100,4200),1690 + 450], [(4400,4475),1540], [(4400,4475),1540+760],[(3600, 3700), 1590], [(3600, 4675),1200], [(4375, 4475),1100], [(1900,4475),690], [(3450,3950),515], [(3450,3950),590], [(1450, 3050), 1190], [(1900, 4375),790], [(1900, 3300), 790], [(1450, 3050), 1290], [(1350, 1450), 1540], [(350, 1150), 625]]
-			self.walls = [[540, (1990, 2340)], [630, (1990, 2340)], [850, (2400, 2475)], [1450, (2375, 2475)], [950, (2250, 2300)], [1250, (2250, 2300)], [2000, (1990, 2065)], [2480, (1815, 1890)], [4100, (1765, 2140)], [4200, (1690, 2140)], [4400, (1540, 760 + 1540)], [4475, (1540, 760 + 1540)], [4675, (0, 2375)], [3600, (1200, 1590)], [3400, (790, 1690)], [3300, (790, 1690)], [4475, (690, 1100)], [3450, (515, 590)], [3950, (515, 590)], [1900, (690, 790)], [3050, (1190, 1290)], [3700, (1300, 1590)], [4375, (790, 1100)], [1450, (0, 1540)], [1350, (0,1540)], [1150, (625, 1690)], [350, (625, 1990)]]
+			self.floors = [[(3700, 4675), 1300],[(0, 850), 2400],[(850, 1450), 2475], [(1450, 4675), 2375], [(950, 950+300), 2250], [(950, 950+300), 2300], [(540, 540+90),1990+340], [(350, 1450),1990], [(1450,4100),1690+75], [(1150, 4200), 1690], [(2000,2400),1975], [(2000,2400), 1975 + 75], [(2480, 2880), 1825], [(2480, 2880), 1900], [(4100,4200),1690 + 450], [(4400,4475),1540], [(4400,4475),1540+760],[(3600, 3700), 1590], [(3600, 4675),1200], [(4375, 4475),1100], [(1900,4475),690], [(3450,3950),515], [(3450,3950),590], [(1450, 3050), 1190], [(1900, 4375),790], [(1900, 3300), 790], [(1450, 3050), 1290], [(1350, 1450), 1540], [(350, 1150), 625]]
+			self.walls = [[540, (1990, 2330)], [630, (1990, 2330)], [850, (2400, 2475)], [1450, (2375, 2475)], [950, (2250, 2300)], [1250, (2250, 2300)], [2000, (1990, 2065)], [2480, (1815, 1890)], [4100, (1765, 2140)], [4200, (1690, 2140)], [4400, (1540, 760 + 1540)], [4475, (1540, 760 + 1540)], [4675, (0, 2375)], [3600, (1200, 1590)], [3400, (790, 1690)], [3300, (790, 1690)], [4475, (690, 1100)], [3450, (515, 590)], [3950, (515, 590)], [1900, (690, 790)], [3050, (1190, 1290)], [3700, (1300, 1590)], [4375, (790, 1100)], [1450, (0, 1540)], [1350, (0,1540)], [1150, (625, 1690)], [350, (625, 1990)], [0, (0, 2500)]]
 			self.grapplePlaces = []
-			self.xGreatorSection = []
-			self.xLesserSection = []
-			self.yGreatorSection = []
-			self.yLesserSection = []
+			self.xGreatorSection = [[350,1990, 4200, 2500],[4200, 2140, 4750, 2500], [3300, 790,4475, 1200], [11450, 690,3300,1190]]
+			self.xLesserSection = [[3600, 1300, 4750, 1690], [1450, 0, 4750, 690 ], [1350, 1190, 3300, 1690], [0, 0, 1350, 625]]
+			self.yGreatorSection = [[0, 625, 350, 2400]]
+			self.yLesserSection = [[4200,1690,4750,2140],[3300, 1200,3600, 1690], [4475,690, 4675, 1200], [1150, 625, 1350, 1690]]
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
 	def getLeaderSection(self,data, player):
 		p = player
@@ -129,7 +126,7 @@ class Map():
 			for box in section:
 				if p.x >= box[0] and p.x <= box[2] and p.y >= box[1] and p.y <= box[3]:
 					return section
-		print("section error fuck you spencer, this is a terrible idea")
+		#print("section error fuck you spencer, this is a terrible idea")
 		#return 1/0
 	def findNewLeader(self, data):
 		if self.getLeaderSection(data, data.player2) != self.getLeaderSection(data, data.player1):
@@ -157,25 +154,27 @@ class Map():
 				else:
 					data.currentLeader = data.player2
 			else:
-				print("you fucked up")
+				pass
+				#print("you fucked up")
 				#return 1/0
 
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
 	def drawGrapplePlaces(self, data):
-		pass 
+		pass
 		"""
 		for grap in self.grapplePlaces:
 			y,x1,x2 = grap[1] - data.screenY, grap[0][0]-data.screenX, grap[0][1] - data.screenX
 			pygame.draw.line(data.screen, (0,0,255) , (x1,y), (x2,y), 5)
 		"""
 	def drawWalls(self,data):
+		
 		pass
-		""""
+		"""
 		for wall in self.walls:
 			x,y1,y2 = wall[0] - data.screenX, wall[1][0] - data.screenY, wall[1][1] - data.screenY
 			pygame.draw.line(data.screen, (255,255,255), (x,y1), (x,y2), 2)
-			"""
+		"""	
 	def drawFloors(self,data):
 		pass
 		"""
@@ -390,10 +389,11 @@ class Player():
 		
 		return False
 	def fixFloorCollision(self, data):
+		print(self.ySpeed)
 		for floor in data.map.floors:
 			x1,x2,y = floor[0][1], floor[0][0], floor[1]
 			if self.x < max(x1,x2) and self.x + self.width > min(x1,x2):
-				if self.y <= y and self.y + self.height >= y:
+				if self.y + min(self.ySpeed, 0) <= y and self.y + self.height >= y:
 					if self.ySpeed < 0:
 						self.y = y - self.height
 					elif self.ySpeed > 0:
@@ -451,11 +451,11 @@ class Player():
 	def move(self,data):
 		self.updateGrappleLocation(data)
 		if self.isOnWall(data): #and self.ySpeed < 0:
-			print (self.x)
+			#print (self.x)
 			self.ySpeed -= data.wallGravity
 		elif self.isOnFloor(data):
 			pass
-		elif not self.isGrappling:
+		elif not self.isGrappling and self.ySpeed > -30:
 			self.ySpeed -= data.gravity
 		if self.crouched():
 			self.xSpeed/= 1.02
@@ -515,6 +515,12 @@ class Player():
 		data.screen.blit(picture,(x,y))
 		#pygame.draw.rect(data.screen, self.color, [x, y, sx, sy])
 		self.drawGrapplingHook(data)
+class AI(Player):
+	def __init__(self, n):
+		super().__init__(self,n)
+
+	def computerInteractions(self, data):
+		pass
 def init(data):
 	data.endGame = True
 	data.playingGame = True
@@ -542,87 +548,94 @@ def userInteractions(data):
 		if event.type == QUIT:
 			pygame.quit()
 			sys.exit()
-	if keyboard.is_pressed("up"):
-		data.player1.jump(data)
-		data.player1.djkeyLifted = False
+	if isinstance(data.player1, AI):
+		data.player1.computerInteractions(data)
 	else:
-		data.player1.djkeyLifted = True
-	if keyboard.is_pressed("left"):
-		data.player1.direction = -1
-		data.player1.moveLeft(data)
-	elif keyboard.is_pressed("right"):
-		data.player1.direction = 1
-		data.player1.moveRight(data)
-	else:
-		data.player1.stop(data)
-	if keyboard.is_pressed("down"):
-		if data.player1.height == data.player1.stadningHeight:
-			data.player1.y += (data.player1.stadningHeight - data.player1.squatHeight)
-		data.player1.height = data.player1.squatHeight
-	else:
-		if data.player1.height == data.player1.squatHeight:
-			data.player1.y -= (data.player1.stadningHeight - data.player1.squatHeight)
-			data.player1.height = data.player1.stadningHeight
-			oldY = data.player1.y
-			data.player1.fixFloorCollision(data)
-			if oldY == data.player1.y:
-				data.player1.height == data.player1.stadningHeight
-			else:
-				data.player1.height = data.player1.squatHeight
-				data.player1.y = oldY + data.player1.stadningHeight - data.player1.squatHeight # 800 - data.player1.squatHeight
-	if keyboard.is_pressed("k"):
-		data.player1.grapple(data)
-	else:
-		data.player1.endGrapple(data)
-	if keyboard.is_pressed("l"):
-		data.powerUps.boostPlayer(data, data.player1)
-	else:
-		data.powerUps.unBoost(data, data.player1)
-	if keyboard.is_pressed("j"):
-		data.player1.userPowerUp(data)
-	else:
-		data.player1.powerUpKeyLifted = True
 
-	if keyboard.is_pressed("w"):
-		data.player2.jump(data)
-		data.player2.djkeyLifted = False
+		if keyboard.is_pressed("up"):
+			data.player1.jump(data)
+			data.player1.djkeyLifted = False
+		else:
+			data.player1.djkeyLifted = True
+		if keyboard.is_pressed("left"):
+			data.player1.direction = -1
+			data.player1.moveLeft(data)
+		elif keyboard.is_pressed("right"):
+			data.player1.direction = 1
+			data.player1.moveRight(data)
+		else:
+			data.player1.stop(data)
+		if keyboard.is_pressed("down"):
+			if data.player1.height == data.player1.stadningHeight:
+				data.player1.y += (data.player1.stadningHeight - data.player1.squatHeight)
+			data.player1.height = data.player1.squatHeight
+		else:
+			if data.player1.height == data.player1.squatHeight:
+				data.player1.y -= (data.player1.stadningHeight - data.player1.squatHeight)
+				data.player1.height = data.player1.stadningHeight
+				oldY = data.player1.y
+				data.player1.fixFloorCollision(data)
+				if oldY == data.player1.y:
+					data.player1.height == data.player1.stadningHeight
+				else:
+					data.player1.height = data.player1.squatHeight
+					data.player1.y = oldY + data.player1.stadningHeight - data.player1.squatHeight # 800 - data.player1.squatHeight
+		if keyboard.is_pressed("k"):
+			data.player1.grapple(data)
+		else:
+			data.player1.endGrapple(data)
+		if keyboard.is_pressed("l"):
+			data.powerUps.boostPlayer(data, data.player1)
+		else:
+			data.powerUps.unBoost(data, data.player1)
+		if keyboard.is_pressed("j"):
+			data.player1.userPowerUp(data)
+		else:
+			data.player1.powerUpKeyLifted = True
+
+	if isinstance(data.player2, AI):
+		data.player2.computerInteractions(data)
 	else:
-		data.player2.djkeyLifted = True
-	if keyboard.is_pressed("a"):
-		data.player2.direction = -1
-		data.player2.moveLeft(data)
-	elif keyboard.is_pressed("d"):
-		data.player2.direction = 1
-		data.player2.moveRight(data)
-	else:
-		data.player2.stop(data)
-	if keyboard.is_pressed("s"):
-		if data.player2.height == data.player2.stadningHeight:
-			data.player2.y += (data.player2.stadningHeight - data.player2.squatHeight)
-		data.player2.height = data.player2.squatHeight
-	else:
-		if data.player2.height == data.player2.squatHeight:
-			data.player2.y -= (data.player2.stadningHeight - data.player2.squatHeight)
-			data.player2.height = data.player2.stadningHeight
-			oldY = data.player2.y
-			data.player2.fixFloorCollision(data)
-			if oldY == data.player2.y:
-				data.player2.height == data.player2.stadningHeight
-			else:
-				data.player2.height = data.player2.squatHeight
-				data.player2.y = oldY + data.player2.stadningHeight - data.player2.squatHeight # 800 - data.player2.squatHeight
-	if keyboard.is_pressed("g"):
-		data.player2.grapple(data)
-	else:
-		data.player2.endGrapple(data)
-	if keyboard.is_pressed("h"):
-		data.powerUps.boostPlayer(data, data.player2)
-	else:
-		data.powerUps.unBoost(data, data.player2)
-	if keyboard.is_pressed("f"):
-		data.player2.userPowerUp(data)
-	else:
-		data.player2.powerUpKeyLifted = True
+		if keyboard.is_pressed("w"):
+			data.player2.jump(data)
+			data.player2.djkeyLifted = False
+		else:
+			data.player2.djkeyLifted = True
+		if keyboard.is_pressed("a"):
+			data.player2.direction = -1
+			data.player2.moveLeft(data)
+		elif keyboard.is_pressed("d"):
+			data.player2.direction = 1
+			data.player2.moveRight(data)
+		else:
+			data.player2.stop(data)
+		if keyboard.is_pressed("s"):
+			if data.player2.height == data.player2.stadningHeight:
+				data.player2.y += (data.player2.stadningHeight - data.player2.squatHeight)
+			data.player2.height = data.player2.squatHeight
+		else:
+			if data.player2.height == data.player2.squatHeight:
+				data.player2.y -= (data.player2.stadningHeight - data.player2.squatHeight)
+				data.player2.height = data.player2.stadningHeight
+				oldY = data.player2.y
+				data.player2.fixFloorCollision(data)
+				if oldY == data.player2.y:
+					data.player2.height == data.player2.stadningHeight
+				else:
+					data.player2.height = data.player2.squatHeight
+					data.player2.y = oldY + data.player2.stadningHeight - data.player2.squatHeight # 800 - data.player2.squatHeight
+		if keyboard.is_pressed("g"):
+			data.player2.grapple(data)
+		else:
+			data.player2.endGrapple(data)
+		if keyboard.is_pressed("h"):
+			data.powerUps.boostPlayer(data, data.player2)
+		else:
+			data.powerUps.unBoost(data, data.player2)
+		if keyboard.is_pressed("f"):
+			data.player2.userPowerUp(data)
+		else:
+			data.player2.powerUpKeyLifted = True
 def periodical(data):
 	data.player1.move(data)
 	data.powerUps.update(data.player1, data)
