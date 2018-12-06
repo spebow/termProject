@@ -43,7 +43,7 @@ class PowerUps():
 	def __init__(self):
 		self.puSize = 50
 		self.speedBoost = [[2000, 2325], [1200, 2200]]
-		self.boxDrops = [[1000, 550]]
+		self.boxDrops = [[1000, 550], [3550, 460]]
 		self.powers = []
 		self.boostImage = pygame.transform.scale(pygame.image.load("boostImage.png"), (self.puSize, self.puSize))
 		self.powerUpImage = pygame.transform.scale(pygame.image.load("powerUpImage.png"), (self.puSize, self.puSize))
@@ -59,6 +59,9 @@ class PowerUps():
 					img = images[1]
 				data.screen.blit(img, (200*i, 0))
 				pygame.draw.rect(data.screen, (0,255,0), [55,35, min(100, data.player1.boost), 25])
+				text = str(data.wins[0])
+				font = pygame.font.SysFont('Knewave', 20)
+				text = font.render(text, True, (255,255,255))
 			else:
 				images = self.p2Console
 				if data.player2.powers == []:
@@ -67,6 +70,11 @@ class PowerUps():
 					img = images[1]
 				data.screen.blit(img, (200*i, 0))
 				pygame.draw.rect(data.screen, (0,255,0), [255,35, min(100, data.player2.boost), 25])
+			text = str(data.wins[i])
+			font = pygame.font.SysFont('Knewave', 40)
+			text = font.render(text, True, (255,255,255))
+			data.screen.blit(text, (165 + 200*i,35))
+
 	def boostPlayer(self,data, player):
 		p1 = player
 		if p1.boost> 0:
@@ -128,7 +136,7 @@ class Map():
 			self.picture = pygame.transform.scale(self.picture, (self.mapWidth, self.mapHeight))
 			self.floors = [[(3700, 4675), 1300],[(0, 850), 2400],[(850, 1450), 2475], [(1450, 4675), 2375], [(950, 950+300), 2250], [(950, 950+300), 2300], [(540, 540+90),1990+340], [(350, 1450),1990], [(1450,4100),1690+75], [(1150, 4200), 1690], [(2000,2400),1975], [(2000,2400), 1975 + 75], [(2480, 2880), 1825], [(2480, 2880), 1900], [(4100,4200),1690 + 450], [(4400,4475),1540], [(4400,4475),1540+760],[(3600, 3700), 1590], [(3600, 4675),1200], [(4375, 4475),1100], [(1900,4475),690], [(3450,3950),515], [(3450,3950),590], [(1450, 3050), 1190], [(1900, 4375),790], [(1900, 3300), 790], [(1450, 3050), 1290], [(1350, 1450), 1540], [(350, 1150), 625]]
 			self.walls = [[540, (1990, 2330)], [630, (1990, 2330)], [850, (2400, 2475)], [1450, (2375, 2475)], [950, (2250, 2300)], [1250, (2250, 2300)], [2000, (1990, 2065)], [2480, (1815, 1890)], [4100, (1765, 2140)], [4200, (1690, 2140)], [4400, (1540, 760 + 1540)], [4475, (1540, 760 + 1540)], [4675, (0, 2375)], [3600, (1200, 1590)], [3400, (790, 1690)], [3300, (790, 1690)], [4475, (690, 1100)], [3450, (515, 590)], [3950, (515, 590)], [1900, (690, 790)], [3050, (1190, 1290)], [3700, (1300, 1590)], [4375, (790, 1100)], [1450, (0, 1540)], [1350, (0,1540)], [1150, (625, 1690)], [350, (625, 1990)], [0, (0, 2500)]]
-			self.grapplePlaces = []
+			self.grapplePlaces = [[(2008, 2392), 2050],[(1450, 1600 + 1450), 1308], [(1900, 1900 + 1400), 790], [(3600, 3600+775), 790]]
 			self.xGreatorSection = [[350,1990, 4200, 2500],[4200, 2140, 4750, 2500], [3300, 790,4475, 1200], [11450, 690,3300,1190]]
 			self.xLesserSection = [[3600, 1300, 4750, 1690], [1450, 0, 4750, 690 ], [1350, 1190, 3300, 1690], [0, 0, 1350, 625]]
 			self.yGreatorSection = [[0, 625, 350, 2400]]
@@ -177,12 +185,9 @@ class Map():
 	def drawBackground(self, data):
 		data.screen.blit(self.picture,(-data.screenX,-data.screenY))
 	def drawGrapplePlaces(self, data):
-		pass
-		"""
 		for grap in self.grapplePlaces:
 			y,x1,x2 = grap[1] - data.screenY, grap[0][0]-data.screenX, grap[0][1] - data.screenX
-			pygame.draw.line(data.screen, (0,0,255) , (x1,y), (x2,y), 5)
-		"""
+			pygame.draw.line(data.screen, (255,255,255) , (x1,y), (x2,y), 5)
 	def drawWalls(self,data):
 		
 		pass
@@ -303,6 +308,10 @@ class Player():
 				data.crates.createCrate(self.x - self.width*self.direction, self.y + self.height - data.crates.size)
 				self.powers[1] -= 1
 			self.powerUpKeyLifted = False
+		if isinstance(self, AI):
+			if len(self.powers) == 2 and self.powers[0] == "boxes":
+				data.crates.createCrate(self.x - self.width*self.direction, self.y + self.height - data.crates.size)
+				self.powers[1] -= 1
 	def grappleHit(self,data):
 		for pad in data.map.grapplePlaces:
 			px1, px2, py= pad[0][0], pad[0][1], pad[1]
@@ -499,7 +508,7 @@ class Player():
 		if self.grapplingHook[0][1] != self.grapplingHook[1][1]:
 			x1,y1 = self.grapplingHook[0][0] - data.screenX, self.grapplingHook[0][1] - data.screenY
 			x2,y2 = self.grapplingHook[1][0] - data.screenX, self.grapplingHook[1][1] - data.screenY	
-			pygame.draw.line(data.screen, (255,0,0), (x1,y1), (x2,y2), 5)
+			pygame.draw.line(data.screen, (0,0,0), (x1,y1), (x2,y2), 5)
 	def drawPlayer(self, data):
 		x,y,sx, sy = self.x, self.y, self.width, self.height
 		x -= data.screenX
@@ -513,10 +522,12 @@ class Player():
 				picture = pygame.transform.rotate(picture, -90)
 			picture = pygame.transform.scale(picture, (self.width, self.height))
 		elif self.isOnFloor(data) and self.xSpeed != 0:
-			self.runningProgress += 1
+			if data.playingGame:
+				self.runningProgress += 1
 			picture = self.runningImages[self.runningProgress%len(self.runningImages)]
 		elif self.isOnFloor(data) and self.xSpeed == 0:
-			self.idleProgress += 1
+			if data.playingGame:
+				self.idleProgress += 1
 			picture = self.idleImages[self.idleProgress%len(self.idleImages)]
 		elif self.isOnWall(data):
 			picture = self.wallSlidingPicture
@@ -568,14 +579,17 @@ class AI(Player):
 		elif self.x > cp[i][0]: #and not self.isOnWall(data):
 			self.direction = -1
 			self.moveLeft(data)
-		data.powerUps.boostPlayer(self,data)
+		data.powerUps.boostPlayer(data, self)
 		self.userPowerUp(data)
 	def drawAICheckPoints(self, data):
+		pass
+		"""
 		for p in data.map.AICheckpoints:
 			color = (255,0,0)
 			if p == data.map.AICheckpoints[self.currentPoint]:
 				color = (0,0,255)
 			pygame.draw.ellipse(data.screen, color, [p[0]-data.screenX, p[1] - data.screenY, 10, 10])
+			"""
 def init(data):
 	data.humans = [False, False]
 	data.endGame = True
@@ -595,6 +609,7 @@ def init(data):
 	data.fpsActual = 0
 	pygame.font.init()	 
 	data.crates = Crates()
+	data.wins = [0,0]
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -783,18 +798,28 @@ def drawEndGame(data):
 	data.crates.drawCrates(data)
 	data.player1.drawPlayer(data)
 	data.player2.drawPlayer(data)
-	text = str(data.currentLeader) + " wins!, press space to restart"
-	font = pygame.font.SysFont('Comic Sans MS', 20)
-	color = (255,0,0)
-	text = font.render(text, True, color)
-	data.screen.blit(text, (data.screenWidth/2,data.screenHeight/2))
+	if data.currentLeader == data.player1:
+		img = pygame.image.load("p1-win.png")
+	else:
+		img = pygame.image.load("p2-win.png")
+	data.screen.blit(img, (200, 150))
+
 	pygame.display.flip()
 	pygame.display.update()
 def runEndGame(data):
 	while data.endGame:
 		endGameUserInteractions(data)
 		drawEndGame(data)
-	startGame()
+	if data.currentLeader == data.player1:
+		data.wins[0] += 1
+	else:
+		data.wins[1] += 1
+	wins = data.wins
+	humans = data.humans
+	init(data)
+	data.wins, data.humans = wins, humans
+	setPlayers(data)
+	playGame(data)
 def playGame(data):
 	countdown(data)
 	while data.playingGame:
@@ -841,16 +866,7 @@ def preGameDraw(data):
 	data.screen.blit(text2, (650,375))
 	pygame.display.flip()
 	pygame.display.update()
-def preGame(data):
-	preGameInit(data)
-	while True:
-		oldTime = time.time()
-		preGameExit(data)
-		preGameUser(data)
-		preGameDraw(data)
-		data.fpsClock.tick(data.fps)
-		if not data.preGame:
-			break
+def setPlayers(data):
 	if data.humans[0]:
 		data.player1 = Player(0)
 	else:
@@ -861,6 +877,17 @@ def preGame(data):
 		data.player2 = AI(1)
 	data.players = [data.player1, data.player2]
 	data.currentLeader = data.player1 
+def preGame(data):
+	preGameInit(data)
+	while True:
+		oldTime = time.time()
+		preGameExit(data)
+		preGameUser(data)
+		preGameDraw(data)
+		data.fpsClock.tick(data.fps)
+		if not data.preGame:
+			break
+	setPlayers(data)
 def startGame():
 	class Struct(object): pass
 	data = Struct()
