@@ -133,7 +133,7 @@ class Map():
 			self.xLesserSection = [[3600, 1300, 4750, 1690], [1450, 0, 4750, 690 ], [1350, 1190, 3300, 1690], [0, 0, 1350, 625]]
 			self.yGreatorSection = [[0, 625, 350, 2400]]
 			self.yLesserSection = [[4200,1690,4750,2140],[3300, 1200,3600, 1690], [4475,690, 4675, 1200], [1150, 625, 1350, 1690]]
-			self.AICheckpoints = [(1100, 2425), (1250,2425), (2000, 2325), (4250,2325), (4350, 2200), (4200, 2070), (4350, 2000)]
+			self.AICheckpoints = [(1100, 2425), (1250,2425), (2000, 2325), (4250,2325), (4350, 2200), (4200, 2010), (4350, 1920), (4200, 1830), (4350, 1720), (4000, 1640), (3450, 1640),(3400, 1550), (3550, 1460), (3400, 1370), (3550, 1280), (3400, 1190), (3850, 1150), (4475, 1150), (4625, 1050), (4475, 950), (4625, 850), (4475, 750), (4075, 640), (3500, 465),(1450,1050), (2000, 1140), (3250, 1500), (1330, 1640), (1150, 1540), (1300, 1420), (1150, 1300), (1300, 1180), (1150, 1060), (1300, 940), (1150, 820), (1300, 700), (600,575), (0, 2200), (500,2350)]
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
 	
 	def getLeaderSection(self,data, player):
@@ -568,7 +568,8 @@ class AI(Player):
 		elif self.x > cp[i][0]: #and not self.isOnWall(data):
 			self.direction = -1
 			self.moveLeft(data)
-
+		data.powerUps.boostPlayer(self,data)
+		self.userPowerUp(data)
 	def drawAICheckPoints(self, data):
 		for p in data.map.AICheckpoints:
 			color = (255,0,0)
@@ -766,9 +767,9 @@ def countdown(data):
 def endGame(data):
 	 for player in data.players:
 	 	if player.x > data.screenX + data.screenWidth or player.x + player.width < data.screenX:
-	 			pass #data.playingGame = False
+	 			data.playingGame = False
 	 	if player.y + player.height < data.screenY or player.y > data.screenY + data.screenHeight:
-	 			pass #data.playingGame = False
+	 			data.playingGame = False
 def endGameUserInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
