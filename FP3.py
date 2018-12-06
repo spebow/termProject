@@ -18,7 +18,7 @@ https://banner2.kisspng.com/20180329/xeq/kisspng-dota-2-defense-of-the-ancients-
 
 class Crates():
 	def __init__(self):
-		self.crates = [[2600,1000]]
+		self.crates = [[546,2330], [576, 2330], [606, 2330]]
 		self.size = 30
 		self.image = pygame.image.load("crate.png")
 		self.image = pygame.transform.scale(self.image, (self.size, self.size))
@@ -42,18 +42,31 @@ class Crates():
 class PowerUps():
 	def __init__(self):
 		self.puSize = 50
-		self.speedBoost = [[2000, 900]]
+		self.speedBoost = [[2000, 2325], [1200, 2200]]
 		self.boxDrops = [[1000, 550]]
 		self.powers = []
 		self.boostImage = pygame.transform.scale(pygame.image.load("boostImage.png"), (self.puSize, self.puSize))
 		self.powerUpImage = pygame.transform.scale(pygame.image.load("powerUpImage.png"), (self.puSize, self.puSize))
-		
+		self.p1Console = [pygame.image.load("p1-n-pu.png"), pygame.image.load("p1-w-pu.png")]
+		self.p2Console = [pygame.image.load("p2-n-pu.png"), pygame.image.load("p2-w-pu.png")]
 	def drawBoostBar(self, data):
 		for i in range(len(data.players)):
-			img = pygame.image.load("untitled (5).png")
-			pygame.transform.scale(img, (200, 130))
-			data.screen.blit(img, (50, 0))
-
+			if i == 0:
+				images = self.p1Console
+				if data.player1.powers == []:
+					img = images[0]
+				else:
+					img = images[1]
+				data.screen.blit(img, (200*i, 0))
+				pygame.draw.rect(data.screen, (0,255,0), [55,35, min(100, data.player1.boost), 25])
+			else:
+				images = self.p2Console
+				if data.player2.powers == []:
+					img = images[0]
+				else:
+					img = images[1]
+				data.screen.blit(img, (200*i, 0))
+				pygame.draw.rect(data.screen, (0,255,0), [255,35, min(100, data.player2.boost), 25])
 	def boostPlayer(self,data, player):
 		p1 = player
 		if p1.boost> 0:
@@ -77,8 +90,8 @@ class PowerUps():
 			for boost in self.speedBoost:
 				if player.x <= boost[0] + self.puSize and player.x + player.width >= boost[0]:
 					if player.y <= boost[1] + self.puSize and player.y + player.height >= boost[1]:
-						self.speedBoost.remove(boost)
-						player.boost += 100
+						#self.speedBoost.remove(boost)
+						player.boost += 10
 			for item in self.boxDrops:
 				if player.x <= item[0] + self.puSize and player.x + player.width >= item[0]:
 					if player.y <= item[1] + self.puSize and player.y + player.height >= item[1]:
@@ -120,12 +133,9 @@ class Map():
 			self.xLesserSection = [[3600, 1300, 4750, 1690], [1450, 0, 4750, 690 ], [1350, 1190, 3300, 1690], [0, 0, 1350, 625]]
 			self.yGreatorSection = [[0, 625, 350, 2400]]
 			self.yLesserSection = [[4200,1690,4750,2140],[3300, 1200,3600, 1690], [4475,690, 4675, 1200], [1150, 625, 1350, 1690]]
-			self.AICheckpoints = [(1100, 2425), (1300,2425), (2000, 2325), (4200,2325), (4350, 2250), (4150, 2300)]
+			self.AICheckpoints = [(1100, 2425), (1250,2425), (2000, 2325), (4250,2325), (4350, 2200), (4200, 2070), (4350, 2000)]
 		self.sections = [self.xLesserSection, self.xGreatorSection, self.yLesserSection, self.yGreatorSection]
-	def drawAICheckPouints(self, data):
-		for p in self.AICheckpoints:
-			pygame.draw.ellipse(data.screen, (255,0,0), [p[0], p[1], 10, 10])
-			print("fds")
+	
 	def getLeaderSection(self,data, player):
 		p = player
 		for section in self.sections:
@@ -193,7 +203,6 @@ class Map():
 		self.drawWalls(data)
 		self.drawFloors(data)
 		self.drawGrapplePlaces(data) 
-		self.drawAICheckPouints(data)
 class Player():
 	def __init__(self, n):
 		self.n = n
@@ -365,6 +374,8 @@ class Player():
 		if self.isOnWall(data) and self.djkeyLifted and not self.wjUsed:
 			self.ySpeed = self.jumpStrength
 			self.wjUsed = True
+		if self.isOnWall(data) and isinstance(self, AI):
+			self.ySpeed = self.jumpStrength
 	def crouched(self):
 		return self.height == self.squatHeight
 	def moveRight(self,data):
@@ -525,21 +536,47 @@ class AI(Player):
 	def __init__(self, n):
 		super().__init__(n)
 		self.currentPoint = 0
+		self.jumpFirst = False
+		self.alreadyJumpedOnWall = False
 	def computerInteractions(self, data):
 		cp, i = data.map.AICheckpoints, self.currentPoint
-		if abs(self.x - cp[i][0]) <= self.xSpeed and abs(self.y-cp[i][1]) <= self.ySpeed:
+	
+		if self.ySpeed == 0:
+			if (self.x - cp[i][0])*self.direction >= 0 and abs(self.x - cp[i][0]) <= abs(self.xSpeed) + 1:
+				self.currentPoint += 1
+		elif abs(self.y-cp[i][1]) < abs(self.ySpeed)  and self.x == cp[i][0]:
 			self.currentPoint += 1
-			print("trip")
+		
 		if self.currentPoint >= len(cp):
 			self.currentPoint = 0
 		i = self.currentPoint
-		if self.x < cp[i][0]:
-			self.moveRight(data)
-		if self.x > cp[i][0]:
-			self.moveLeft(data)
+		if self.isOnWall(data) and not self.alreadyJumpedOnWall:
+			self.jumpFirst = True
+		if not self.isOnWall(data):
+			self.alreadyJumpedOnWall = False
+	
 		if self.y > cp[i][1]:
+			if i == 5:
+				print("jumping")
 			self.jump(data)
+			self.jumpFirst = False
+			if self.isOnWall(data):
+				self.alreadyJumpedOnWall = True
+		if self.x < cp[i][0]: #and not self.isOnWall(data):
+			self.moveRight(data)
+			self.direction = 1
+		elif self.x > cp[i][0]: #and not self.isOnWall(data):
+			self.direction = -1
+			self.moveLeft(data)
+
+	def drawAICheckPoints(self, data):
+		for p in data.map.AICheckpoints:
+			color = (255,0,0)
+			if p == data.map.AICheckpoints[self.currentPoint]:
+				color = (0,0,255)
+			pygame.draw.ellipse(data.screen, color, [p[0]-data.screenX, p[1] - data.screenY, 10, 10])
 def init(data):
+	data.humans = [False, False]
 	data.endGame = True
 	data.playingGame = True
 	data.screenWidth, data.screenHeight = 1000, 600
@@ -549,18 +586,14 @@ def init(data):
 	data.screen = pygame.display.set_mode((data.screenWidth, data.screenHeight),0,32)
 	clock = pygame.time.Clock()
 	pygame.key.set_repeat(1)
-	data.player1 = Player(0)
-	data.player2 = AI(1)
-	data.players = [data.player1, data.player2]
 	data.powerUps = PowerUps()
 	data.gravity = 3
 	data.map = Map()
 	data.screenX, data.screenY = 0,0
 	data.wallGravity = 1.3
 	data.fpsActual = 0
-	pygame.font.init()	
+	pygame.font.init()	 
 	data.crates = Crates()
-	data.currentLeader = data.player1 
 def userInteractions(data):
 	for event in pygame.event.get():
 		if event.type == QUIT:
@@ -689,17 +722,23 @@ def moveScreen(data):
 	elif data.screenY + data.screenHeight > data.map.mapHeight:
 		data.screenY = data.map.mapHeight - data.screenHeight
 def drawFps(data):
+	pass
+	"""
 	text = str(data.fpsActual)
 	font = pygame.font.SysFont('Comic Sans MS', 20)
 	d = max(min(int((((data.fpsActual-10)/20)*255)), 0),255)
 	color = (255,d,d)
 	text = font.render(text, True, color)
 	data.screen.blit(text, (20,20))
+	"""
 def drawGame(data):
 	moveScreen(data)
 	data.map.drawMap(data)
 	data.powerUps.draw(data)
 	data.crates.drawCrates(data)
+	for p in data.players:
+		if isinstance(p, AI):
+			p.drawAICheckPoints(data)
 	data.player1.drawPlayer(data)
 	data.player2.drawPlayer(data)
 	drawFps(data)
@@ -778,8 +817,27 @@ def preGameExit(data):
 			sys.exit()
 	if keyboard.is_pressed("space"):
 		endPreGame(data)
+def preGameUser(data):
+	if keyboard.is_pressed("w"):
+		data.humans[1] = True
+	if keyboard.is_pressed("up"):
+		data.humans[0] = True
 def preGameDraw(data):
 	data.screen.blit(data.background, (0,0))
+	if not data.humans[0]:
+		text = str("Press up to join")
+	else:
+		text = str("Player 1 joined")
+	if not data.humans[1]:
+		text2 = str("Press w to join")
+	else:
+		text2 = str("Player 2 joined")
+	font = pygame.font.SysFont('Knewave', 40)
+	color = (0,0,0)
+	text = font.render(text, True, color)
+	text2 = font.render(text2, True, color)
+	data.screen.blit(text, (80,375))
+	data.screen.blit(text2, (650,375))
 	pygame.display.flip()
 	pygame.display.update()
 def preGame(data):
@@ -787,10 +845,21 @@ def preGame(data):
 	while True:
 		oldTime = time.time()
 		preGameExit(data)
+		preGameUser(data)
 		preGameDraw(data)
 		data.fpsClock.tick(data.fps)
 		if not data.preGame:
 			break
+	if data.humans[0]:
+		data.player1 = Player(0)
+	else:
+		data.player1 = AI(0)
+	if data.humans[1]:
+		data.player2 = Player(1)
+	else:
+		data.player2 = AI(1)
+	data.players = [data.player1, data.player2]
+	data.currentLeader = data.player1 
 def startGame():
 	class Struct(object): pass
 	data = Struct()
